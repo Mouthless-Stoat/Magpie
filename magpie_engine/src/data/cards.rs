@@ -141,6 +141,14 @@ pub enum Rarity {
     ///
     /// This usually map to card that you can have only have 1 of this rarity per deck
     UNIQUE,
+    /// Unique rarity for card.
+    ///
+    /// This usually map to cards that are for campaign use as deathcards.
+    DEATHCARD,
+    /// Unique rarity for card.
+    ///
+    /// This usually map to cards that are made as jokes but allowed in use if both players agree.
+    JOKECARD,
 }
 
 impl Display for Rarity {
@@ -154,6 +162,8 @@ impl Display for Rarity {
                 Rarity::UNCOMMON => "Uncommon",
                 Rarity::RARE => "Rare",
                 Rarity::UNIQUE => "Unique",
+                Rarity::DEATHCARD => "Death Card",
+                Rarity::JOKECARD => "Joke Card",
             }
         )
     }
@@ -174,6 +184,8 @@ bitsflag! {
         FOOL = 1 << 4;
         /// The Artistry or Galliard Temple from Descryprion.
         ARTISTRY = 1 << 5;
+        /// The Extra cards for example Terrain.
+        EXTRAS = 1 << 6;
     }
 }
 
@@ -209,6 +221,12 @@ bitsflag! {
         B = 1 << 2;
         /// Gray or Prism Mox
         Y = 1 << 3;
+        /// Purple or Amethyst Mox
+        P = 1 << 4;
+        /// Red or Garnet Mox
+        T = 1 << 5;
+        /// Red or Garnet Mox
+        O = 1 << 6;
     }
 }
 
@@ -223,6 +241,12 @@ pub struct MoxCount {
     pub b: usize,
     /// The Gray, Prism component
     pub y: usize,
+    /// Purple or Amethyst Mox
+    pub p: usize,
+    /// Red or Garnet Mox
+    pub t: usize,
+    /// Red or Garnet Mox
+    pub o: usize,
 }
 
 impl Default for MoxCount {
@@ -232,6 +256,9 @@ impl Default for MoxCount {
             g: 1,
             b: 1,
             y: 1,
+            p: 1,
+            t: 1,
+            o: 1,
         }
     }
 }

@@ -2,3 +2,4 @@ target/
 */target/
 magpie_engine/src/main.rs
 *.bin
+magpie_tutor/src/main.rs

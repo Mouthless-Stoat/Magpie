@@ -9,6 +9,7 @@ use std::fmt::Display;
 
 pub mod aug;
 pub mod imf;
+pub mod cti;
 
 /// Error that happned when calling [`fetch_json`]
 #[derive(Debug)]
