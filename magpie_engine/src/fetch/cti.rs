@@ -173,7 +173,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
         }
 
         let card = Card {
-            portrait: portrait,
+            portrait: card.portrait,
             set: code,
 
             name: card.name,
@@ -202,19 +202,16 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
 
             attack: card.attack.parse().unwrap_or(0),
             health: card.health.parse().unwrap_or(0),
-            sigils: if card.sigil1.is_empty() {
-                vec![]
-            } else {
-                sigils = [sigil1, sigil2, sigil3, sigil4].to_vec().ToString()
-                card.sigils.split(", ").map(|s| {
+            sigils:
+                sigilslist = [card.sigil1, card.sigil2, card.sigil3, card.sigil4].to_vec(),
+                sigilslist.split(", ").map(|s| {
                     let s = s.to_owned();
                     if sigils_description.contains_key(&s) {
                         s
                     } else {
                         String::from("UNDEFINEDED SIGILS")
                     }
-                }).collect()
-            },
+                }).collect(),
             // I don't pay enough attention to Ctimented to keep updating the code to accommodate
             // them so the value will just be parse as string
             sp_atk: None,
