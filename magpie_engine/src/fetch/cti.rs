@@ -173,7 +173,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
         }
 
         let card = Card {
-            portrait: card.image,
+            portrait: portrait,
             set: code,
 
             name: card.name,
@@ -202,9 +202,10 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
 
             attack: card.attack.parse().unwrap_or(0),
             health: card.health.parse().unwrap_or(0),
-            sigils: if card.sigils.is_empty() {
+            sigils: if card.sigil1.is_empty() {
                 vec![]
             } else {
+                sigils = [sigil1, sigil2, sigil3, sigil4].to_vec().ToString()
                 card.sigils.split(", ").map(|s| {
                     let s = s.to_owned();
                     if sigils_description.contains_key(&s) {
@@ -303,10 +304,16 @@ struct CtiCard {
     description: String,
     #[serde(rename = "Token")]
     token: String,
-    #[serde(rename = "Sigil 1") && (rename = "Sigil 2") && (rename = "Sigil 3") (rename = "Sigil 4")]
-    sigils: String,
+    #[serde(rename = "Sigil 1")]
+    sigil1: String,
+    #[serde(rename = "Sigil 2")]
+    sigil2: String,
+    #[serde(rename = "Sigil 3")]
+    sigil3: String,
+    #[serde(rename = "Sigil 4")]
+    sigil4: String,
     #[serde(rename = "Image")]
-    image: String,
+    portrait: String,
     #[serde(rename = "Wiki-Page")]
     wikipage: String,
 }
