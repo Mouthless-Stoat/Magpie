@@ -16,7 +16,7 @@ pub struct CtiExt {
     pub shattered_count: Option<MoxCount>,
     /// Max energy cell cost.
     pub max: isize,
-    // Skulls Cost
+    /// Skulls Cost
     pub skull: isize,
 }
 
@@ -36,12 +36,12 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
 
     let mut cards = Vec::with_capacity(raw_card.len());
 
-    let undefined_sigil = String::from("UNDEFINDED SIGILS");
+    let undefined_sigil = String::from("UNDEFINED SIGILS");
 
     let mut sigils_description = HashMap::with_capacity(sigil.len());
 
     for s in sigil {
-        sigils_description.insert(s.name, s.text.replace('\n', ""));
+        sigils_description.insert(s.name.clone(), s.text.replace('\n', ""));
     }
 
     sigils_description.insert(
@@ -172,6 +172,19 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
             costs = None;
         }
 
+        let sigils = [card.sigil1, card.sigil2, card.sigil3, card.sigil4]
+            .iter()
+            .filter(|s| !s.is_empty())
+            .map(|s| {
+                let s = s.to_owned();
+                if sigils_description.contains_key(&s) {
+                    s
+                } else {
+                    undefined_sigil.clone()
+                }
+            })
+            .collect();
+
         let card = Card {
             portrait: card.portrait,
             set: code,
@@ -189,7 +202,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                 "Common (Joke Card)" => Rarity::JOKECARD,
                 _ => return Err(CtiError::UnknownRarity(card.rarity)),
             },
-            temple:match card.temple.as_str() {
+            temple: match card.temple.as_str() {
                 "Beast" => Temple::BEAST,
                 "Undead" => Temple::UNDEAD,
                 "Tech" => Temple::TECH,
@@ -202,18 +215,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
 
             attack: card.attack.parse().unwrap_or(0),
             health: card.health.parse().unwrap_or(0),
-            sigils:
-                sigilslist = [card.sigil1, card.sigil2, card.sigil3, card.sigil4].to_vec(),
-                sigilslist.split(", ").map(|s| {
-                    let s = s.to_owned();
-                    if sigils_description.contains_key(&s) {
-                        s
-                    } else {
-                        String::from("UNDEFINEDED SIGILS")
-                    }
-                }).collect(),
-            // I don't pay enough attention to Ctimented to keep updating the code to accommodate
-            // them so the value will just be parse as string
+            sigils,
             sp_atk: None,
 
             costs,
@@ -230,7 +232,6 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                 shattered_count: (!shattered_count.eq(&MoxCount::default())).then_some(shattered_count),
                 skull,
             },
-
         };
 
         cards.push(card);
@@ -256,7 +257,7 @@ pub enum CtiError {
     /// Invalid Temple.
     UnknownTemple(String),
     /// Invalid cost format. The cost doesn't follow each component are a number then the cost
-    /// with space between and every cost is separted by `'+'`.
+    /// with space between and every cost is separated by `'+'`.
     InvalidCostFormat(String),
     /// Unknow cost.
     UnknowCost(String),
