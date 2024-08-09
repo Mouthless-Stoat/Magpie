@@ -7,7 +7,8 @@ use crate::{get_portrait, resize_img, Card};
 pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
         "aug" => gen_aug_portrait(card),
-        "com" | "ete" | "egg" => gen_imf_portrait(card),
+        "cti" => gen_cti_portrait(card),
+        "std" | "ete" | "egg" => gen_imf_portrait(card),
         _ => unimplemented!(),
     }
 }
@@ -50,4 +51,7 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
         .unwrap();
 
     resize_img(&out, 2)
+}
+fn gen_cti_portrait(card: &Card) -> Vec<u8> {
+    image::load(Cursor::new(get_portrait(&card.portrait)), ImageFormat::Png).unwrap();
 }
