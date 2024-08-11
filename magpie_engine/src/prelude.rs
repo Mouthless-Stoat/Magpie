@@ -1,6 +1,6 @@
-//! Import commonly use types and traits
+//! Import commonly use types and traits.
 //!
-//! Re-export types that you can use by just importing it
+//! Re-export types that you can use by just importing it.
 //! # Example
 //!
 //! Import the prelude with:
@@ -9,7 +9,10 @@
 //! ```
 
 pub use crate::{
-    fetch::{aug::*, imf::*},
-    query::{Filters, QueryBuilder, QueryOrder, ToFilter},
+    fetch::{
+        fetch_aug_set, fetch_desc as fetch_desc_set, fetch_imf_set, AugCosts, AugError, AugExt,
+        DescCosts, DescError, ImfError,
+    },
+    query::{FilterFn, Filters, QueryBuilder, QueryOrder, ToFilter},
     *,
 };

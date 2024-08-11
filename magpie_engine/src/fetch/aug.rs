@@ -1,31 +1,36 @@
-//! Implementation for the [Augmented] set
+//! Implementation for the [Augmented] set.
 //!
 //! [Augmented]: https://steamcommunity.com/sharedfiles/filedetails/?id=2966485639&searchtext=augmented
 
 use super::{fetch_json, FetchError};
-use crate::Rarity;
-use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
+use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits, TraitsFlag};
+use crate::{Attack, Rarity};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-/// Augmented's [`Card`] extensions
+/// Augmented's [`Card`] extensions.
 #[derive(Debug, Default, Clone)]
 pub struct AugExt {
-    /// Shattered mox cost count.
-    pub shattered_count: Option<MoxCount>,
-    /// Max energy cell cost.
-    pub max: isize,
     /// Artist credit.
     pub artist: String,
 }
 
-self_upgrade!(AugExt);
+/// Augmented's [`Costs`] extensions.
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct AugCosts {
+    /// Shattered mox cost count.
+    pub shattered_count: Option<MoxCount>,
+    /// Max energy cell cost.
+    pub max: isize,
+}
+
+self_upgrade!(AugExt, AugCosts);
 
 /// Fetch Augmented from the
-/// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/edit?gid=0#gid=0).
+/// [sheet](https://docs.google.com/spreadsheets/d/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk).
 #[allow(clippy::too_many_lines)]
-pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
+pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt, AugCosts>, AugError> {
     let raw_card: Vec<AugCard> =
         fetch_json("https://opensheet.elk.sh/1tvTXSsFDK5xAVALQPdDPJOitBufJE6UB_MN4q5nbLXk/Cards")
             .map_err(AugError::CardFetchError)?;
@@ -52,12 +57,11 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
     for card in raw_card {
         let costs;
 
-        let mut shattered_count = MoxCount::default();
         let mut mox_count = MoxCount::default();
-        let mut max = 0;
+        let mut shattered_count = MoxCount::default();
 
         if card.cost != "free" && !card.cost.is_empty() {
-            let mut t = Costs::default();
+            let mut t: Costs<AugCosts> = Costs::default();
 
             for c in card
                 .cost
@@ -91,10 +95,10 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     "blood" => t.blood += count,
                     "bone" => t.bone += count,
                     "energy" => t.energy += count,
-                    "max" => max += count,
+                    "max" => t.extra.max += count,
                     "shattered" => match cost.pop().unwrap().as_str() {
                         "ruby" => {
-                            t.mox |= Mox::R;
+                            t.mox |= Mox::O;
                             shattered_count.r += count as usize;
                         }
                         "emerald" => {
@@ -113,7 +117,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     },
                     m @ ("ruby" | "sapphire" | "emerald" | "prism") => match m {
                         "ruby" => {
-                            t.mox |= Mox::R;
+                            t.mox |= Mox::O;
                             mox_count.r += count as usize;
                         }
                         "emerald" => {
@@ -134,8 +138,14 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     c => return Err(AugError::UnknowCost(c.to_string())),
                 }
             }
+
+            // only include the moxes if they are not the default all 1
             if mox_count != MoxCount::default() {
                 t.mox_count = Some(mox_count);
+            }
+
+            if shattered_count != MoxCount::default() {
+                t.extra.shattered_count = Some(shattered_count);
             }
             costs = Some(t);
         } else {
@@ -165,10 +175,10 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                 "Magick" => Temple::MAGICK,
                 "Fool" => Temple::FOOL,
                 _ => return Err(AugError::UnknownTemple(card.temple))
-            }.into(),
+            },
             tribes: (!card.tribes.is_empty()).then_some(card.tribes),
 
-            attack: card.attack.parse().unwrap_or(0),
+            attack: Attack::Num(card.attack.parse().unwrap_or(0)),
             health: card.health.parse().unwrap_or(0),
             sigils: if card.sigils.is_empty() {
                 vec![]
@@ -182,9 +192,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     }
                 }).collect()
             },
-            // I don't pay enough attention to augmented to keep updating the code to accommodate
-            // them so the value will just be parse as string
-            sp_atk: None,
 
             costs,
 
@@ -197,7 +204,7 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
                     .collect::<Vec<String>>()
                 ),
 
-                flags: 0
+                flags: TraitsFlag::empty()
             }),
             related: if card.token.is_empty() {
                 vec![]
@@ -207,8 +214,6 @@ pub fn fetch_aug_set(code: SetCode) -> Result<Set<AugExt>, AugError> {
 
             extra: AugExt {
                 artist: card.artist,
-                max,
-                shattered_count: (!shattered_count.eq(&MoxCount::default())).then_some(shattered_count),
             }
         };
 
@@ -230,34 +235,34 @@ pub enum AugError {
     CardFetchError(FetchError),
     /// Error when trying to [`fetch_json`] sigils.
     SigilFetchError(FetchError),
-    /// Invalid Rarity.
+    /// Unkown rarity.
     UnknownRarity(String),
-    /// Invalid Temple.
+    /// Unkown temple.
     UnknownTemple(String),
     /// Invalid cost format. The cost doesn't follow each component are a number then the cost
     /// with space between and every cost is separted by `'+'`.
     InvalidCostFormat(String),
     /// Unknow cost.
     UnknowCost(String),
-    /// Invalid Mox color.
+    /// Unkown Mox color.
     UnknowMox(String),
 }
 
 impl Display for AugError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AugError::CardFetchError(e) => write!(f, "cannot fetch cards due to: {e}"),
+            AugError::CardFetchError(e) => write!(f, "cannot fetch augmented cards due to: {e}"),
             AugError::SigilFetchError(e) => write!(f, "cannot fetch sigils due to: {e}"),
-            AugError::UnknownRarity(r) => write!(f, "unknown rarity: {r}"),
-            AugError::UnknownTemple(r) => write!(f, "unknown temple: {r}"),
-            AugError::InvalidCostFormat(s) => write!(f, "invalid cost: {s}"),
-            AugError::UnknowCost(c) => write!(f, "unknow cost: {c}"),
-            AugError::UnknowMox(m) => write!(f, "unknow mox: {m}"),
+            AugError::UnknownRarity(r) => write!(f, "unknown augmented rarity: {r}"),
+            AugError::UnknownTemple(r) => write!(f, "unknown augmented temple: {r}"),
+            AugError::InvalidCostFormat(s) => write!(f, "invalid augmented cost format: {s}"),
+            AugError::UnknowCost(c) => write!(f, "unknow augmented cost: {c}"),
+            AugError::UnknowMox(m) => write!(f, "unknow augmented mox: {m}"),
         }
     }
 }
 
-/// Json scheme for aug card
+/// Json scheme for aug card.
 #[derive(Deserialize)]
 struct AugCard {
     #[serde(rename = "Card Name")]
@@ -292,7 +297,7 @@ struct AugCard {
     artist: String,
 }
 
-/// Json scheme for aug sigil
+/// Json scheme for aug sigil.
 #[derive(Deserialize)]
 struct AugSigil {
     #[serde(rename = "Name")]

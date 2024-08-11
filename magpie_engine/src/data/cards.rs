@@ -1,74 +1,117 @@
-use crate::bitsflag;
-use crate::SetCode;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::hash::Hasher;
 
-/// Represent a card containing all the infomation on the cards.
-///
-/// You can add extra infomation using the [`Card::extra`] field and the generic `E`
-#[derive(Debug, Clone)]
-pub struct Card<C> {
+use bitflags::bitflags;
+
+use crate::SetCode;
+
+macro_rules! card {
+    ($($(#[$attr:meta])* $f:ident: $ty:ty,)*) => {
+        /// Represent a card containing all the infomation on the cards.
+        ///
+        /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
+        #[derive(Debug, Clone)]
+        pub struct Card<E, C>
+        where
+            E: Clone,
+            C: Clone + PartialEq,
+        {
+            /// The card cost
+            ///
+            /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
+            /// The [`mox_count`](Costs::mox_count) component is available if the card can have multiple
+            /// mox of each color.
+            ///
+            /// Free card can have this as [`None`]
+            pub costs: Option<Costs<C>>,
+
+            /// Extra
+            pub extra: E,
+
+            $(
+                $(#[$attr])*
+                pub $f: $ty,
+            )*
+        }
+
+        /// Macro to help with generating [`UpgradeCard`] implementation
+        #[macro_export]
+        macro_rules! upgrade_card {
+            (extra: $extra:expr, costs: $costs:expr, ..$card:expr) => {
+                Card {
+                    extra: $extra,
+                    costs: $card.costs.map(|c| Costs {
+                        extra: $costs(c.clone()),
+
+                        blood: c.blood,
+                        bone: c.bone,
+                        energy: c.energy,
+                        mox: c.mox,
+                        mox_count: c.mox_count,
+
+                    }),
+
+                    $($f: $card.$f,)*
+                }
+            };
+        }
+    };
+}
+
+card! {
     /// The set code that the card belong to.
-    pub set: SetCode,
+    set: SetCode,
 
     /// The card name.
-    pub name: String,
+    name: String,
     /// The card description, note or favor text.
-    pub description: String,
-    /// Return the url to the card portrait
-    pub portrait: String,
+    description: String,
+    /// The url to the card portrait
+    portrait: String,
 
     /// The card rarity.
-    pub rarity: Rarity,
+    rarity: Rarity,
     /// The card temple or archetype.
     ///
     /// Temple are a bit flag to tell which temple the card belong to. You should use the associated
     /// constant of [`Temple`] to set these bit flags. We use a [`u16`] instead of other crate like
     /// [`Bitflags`](https://docs.rs/bitflags/) so we can support more temple and make it easier to
     /// extend, if you need more than 16 temples, may god help you.
-    pub temple: u16,
+    temple: Temple,
     /// The card tribes.
-    pub tribes: Option<String>,
+    tribes: Option<String>,
 
     /// The card attack or power.
-    pub attack: isize,
+    attack: Attack,
     /// The card health.
-    pub health: isize,
+    health: isize,
 
     /// The sigils or abilities on the card.
-    pub sigils: Vec<String>,
+    sigils: Vec<String>,
 
-    /// The card special attack, [`None`] if the card have no special attack
-    ///
-    /// Usually for card with variable attack or attack that are affected by traits. You would
-    /// usually want [`Card::attack`] to return `0` if the card have a special attack.
-    pub sp_atk: Option<SpAtk>,
-
-    /// The card cost
-    ///
-    /// Cost contain a few component, one for each of the cost a card may have blood, bone, etc.
-    /// The [`mox_count`](Costs::mox_count) component is available if the card can have multiple
-    /// mox of each color.
-    pub costs: Option<Costs>,
     /// The card traits
     ///
     /// Traits contain 2 components, the string component which is for uncommon or unique traits and
     /// the flags component for common traits. The flags iare just bit flags that multiple cards have
     /// like terrain, conductive, etc.
-    pub traits: Option<Traits>,
+    ///
+    /// Card with no traits can have this as [`None`]
+    traits: Option<Traits>,
 
     /// Related card or token
     ///
     /// Usuall for tokens, evolution, etc.
-    pub related: Vec<String>,
+    related: Vec<String>,
 
-    /// Extra
-    pub extra: C,
 }
 
-impl<T> Hash for Card<T> {
+impl<T, U> Hash for Card<T, U>
+where
+    T: Clone,
+    U: Clone + PartialEq,
+{
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.set.hash(state);
@@ -76,42 +119,26 @@ impl<T> Hash for Card<T> {
 }
 
 /// Trait for a card to be upgradeable to another card with different generic.
-pub trait UpgradeCard<T> {
+pub trait UpgradeCard<E, U>
+where
+    E: Clone,
+    U: Clone + PartialEq,
+{
     /// Convert this card to another version with different generic
     #[must_use]
-    fn upgrade(self) -> Card<T>;
+    fn upgrade(self) -> Card<E, U>;
 }
 
-impl<T> UpgradeCard<T> for Card<()>
+impl<T, U> UpgradeCard<T, U> for Card<(), ()>
 where
-    T: Default,
+    T: Default + Clone,
+    U: Default + Clone + PartialEq,
 {
-    fn upgrade(self) -> Card<T> {
-        Card {
+    fn upgrade(self) -> Card<T, U> {
+        upgrade_card! {
             extra: T::default(),
-
-            set: self.set,
-
-            name: self.name,
-            description: self.description,
-
-            portrait: self.portrait,
-
-            rarity: self.rarity,
-            temple: self.temple,
-            tribes: self.tribes,
-
-            attack: self.attack,
-            health: self.health,
-
-            sigils: self.sigils,
-
-            sp_atk: self.sp_atk,
-
-            costs: self.costs,
-
-            traits: self.traits,
-            related: self.related,
+            costs: |_| U::default(),
+            ..self
         }
     }
 }
@@ -122,11 +149,11 @@ pub enum Rarity {
     /// Side deck rarity for card.
     ///
     /// This usually map to card that are restricted to the side deck or card that you can add a
-    /// unlimited about of
+    /// unlimited about of.
     SIDE,
-    /// Common rarity for card
+    /// Common rarity for card.
     ///
-    /// This usually map to card with the least amount of deck restriction
+    /// This usually map to card with the least amount of deck restriction.
     COMMON,
     //// Uncommon rarity for card.
     ///
@@ -139,16 +166,8 @@ pub enum Rarity {
     RARE,
     /// Unique rarity for card.
     ///
-    /// This usually map to card that you can have only have 1 of this rarity per deck
+    /// This usually map to card that you can have only have 1 of this rarity per deck.
     UNIQUE,
-    /// Unique rarity for card.
-    ///
-    /// This usually map to cards that are for campaign use as deathcards.
-    DEATHCARD,
-    /// Unique rarity for card.
-    ///
-    /// This usually map to cards that are made as jokes but allowed in use if both players agree.
-    JOKECARD,
 }
 
 impl Display for Rarity {
@@ -162,31 +181,39 @@ impl Display for Rarity {
                 Rarity::UNCOMMON => "Uncommon",
                 Rarity::RARE => "Rare",
                 Rarity::UNIQUE => "Unique",
-                Rarity::DEATHCARD => "Death Card",
-                Rarity::JOKECARD => "Joke Card",
             }
         )
     }
 }
 
-bitsflag! {
+bitflags! {
     /// Temples, binder or archetypes card belong to.
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Temple: u16 {
         /// The Beast or Leshy Temple.
-        BEAST = 1;
+        const BEAST = 1;
         /// The Undead or Grimora Temple.
-        UNDEAD = 1 << 1;
+        const UNDEAD = 1 << 1;
         /// The Tech or PO3 Temple.
-        TECH = 1 << 2;
+        const TECH = 1 << 2;
         /// The Magick or Magnificus Temple.
-        MAGICK = 1 << 3;
+        const MAGICK = 1 << 3;
         /// The Fool Temple from Augmented.
-        FOOL = 1 << 4;
+        const FOOL = 1 << 4;
         /// The Artistry or Galliard Temple from Descryprion.
-        ARTISTRY = 1 << 5;
-        /// The Extra cards for example Terrain.
-        EXTRAS = 1 << 6;
+        const ARTISTRY = 1 << 5;
     }
+}
+
+/// Enum for the diffrent attack type.
+#[derive(Debug, Clone)]
+pub enum Attack {
+    /// Numeric attack value.
+    Num(isize),
+    /// Common predefined special attack.
+    SpAtk(SpAtk),
+    /// String special attack.
+    Str(String),
 }
 
 /// Special attack for cards.
@@ -205,48 +232,44 @@ pub enum SpAtk {
     BONE,
     /// Card that have power from it position to the bell.
     BELL,
-    /// Card that have power from the amount of card in your hand
+    /// Card that have power from the amount of card in your hand.
     CARD,
 }
 
-bitsflag! {
+bitflags! {
     /// Bits flag for Mox, If you need more than these 4 colors you need to make you own mox type and
-    /// extend it
+    /// extend it.
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Mox: u16 {
-        /// Red, Orange or Ruby Mox
-        R = 1;
-        /// Blue or Sapphire Mox
-        G = 1 << 1;
-        /// Green or Emerald Mox
-        B = 1 << 2;
+        /// Orange or Ruby Mox.
+        const O = 1;
+        /// Green or Emerald Mox.
+        const G = 1 << 1;
+        /// Blue or Sapphire Mox.
+        const B = 1 << 2;
         /// Gray or Prism Mox
-        Y = 1 << 3;
-        /// Purple or Amethyst Mox
-        P = 1 << 4;
-        /// Red or Garnet Mox
-        T = 1 << 5;
-        /// Red or Garnet Mox
-        O = 1 << 6;
+        const Y = 1 << 3;
+
+        /// Black or Onyx Mox.
+        const K = 1 << 4;
+        /// Plus 1 indicator for Descryption
+        const P = 1<< 5;
     }
 }
 
 /// Component for when card cost multiple of 1 Mox color.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MoxCount {
-    /// The Red, Orange or Ruby component
+    /// The Red component.
     pub r: usize,
-    /// The Green or Emerald component
+    /// The Green component.
     pub g: usize,
-    /// The Blue or Sapphire component
+    /// The Blue component.
     pub b: usize,
-    /// The Gray, Prism component
+    /// The Gray component.
     pub y: usize,
-    /// Purple or Amethyst Mox
-    pub p: usize,
-    /// Red or Garnet Mox
-    pub t: usize,
-    /// Red or Garnet Mox
-    pub o: usize,
+    /// The Black component.
+    pub k: usize,
 }
 
 impl Default for MoxCount {
@@ -256,16 +279,14 @@ impl Default for MoxCount {
             g: 1,
             b: 1,
             y: 1,
-            p: 1,
-            t: 1,
-            o: 1,
+            k: 1,
         }
     }
 }
 
 /// Contain all the cost info.
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct Costs {
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct Costs<E> {
     /// Other case where the card are not free.
     /// Blood cost for the card.
     pub blood: isize,
@@ -274,29 +295,33 @@ pub struct Costs {
     /// Energy cost for the card.
     pub energy: isize,
     /// Mox bit flags for the card.
-    pub mox: u16,
+    pub mox: Mox,
     /// Multiple Mox support for card.
     ///
     /// If the card only cost 1 Mox max you should not add this type.
     pub mox_count: Option<MoxCount>,
+
+    /// Extra Field for cost extension.
+    pub extra: E,
 }
 
-bitsflag! {
-    /// Bit flags for a card trait
+bitflags! {
+    /// Bit flags for a card trait.
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct TraitsFlag: u16 {
         /// If this card is conductive.
-        CONDUCTIVE = 1;
+        const CONDUCTIVE = 1;
         /// If this card is ban.
-        BAN = 1 << 1;
+        const BAN = 1 << 1;
         /// If this card is unsaccable or a terrain.
-        TERRAIN = 1 << 2;
-        /// If this card is hard or unhammerable
-        HARD = 1 << 3;
+        const TERRAIN = 1 << 2;
+        /// If this card is hard or unhammerable.
+        const HARD = 1 << 3;
     }
 }
 
 /// Store both flag based traits and string based traits.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Traits {
     /// Traits that are not flags so they are [`String`].
     ///
@@ -305,16 +330,16 @@ pub struct Traits {
     /// Trait that are in bit flags form.
     ///
     /// Common traits are store using bit flags to save space.
-    pub flags: u16,
+    pub flags: TraitsFlag,
 }
 
 impl Traits {
-    /// Create a new Traits with flags and empty [`Traits::string`]
+    /// Create a new Traits with flags and empty [`Traits::strings`]
     #[must_use]
-    pub fn with_flags(flags: impl Into<u16>) -> Self {
+    pub fn with_flags(flags: TraitsFlag) -> Self {
         Traits {
             strings: None,
-            flags: flags.into(),
+            flags,
         }
     }
 
@@ -323,7 +348,7 @@ impl Traits {
     pub fn with_str(traits: Vec<String>) -> Self {
         Traits {
             strings: Some(traits),
-            flags: 0,
+            flags: TraitsFlag::empty(),
         }
     }
 }

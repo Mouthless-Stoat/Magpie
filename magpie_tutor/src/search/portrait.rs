@@ -8,7 +8,7 @@ pub fn gen_portrait(card: &Card) -> Vec<u8> {
     match card.set.code() {
         "aug" => gen_aug_portrait(card),
         "std" | "ete" | "egg" => gen_imf_portrait(card),
-        _ => unimplemented!(),
+        code => todo!("portrait for set code is not implemented yet: {code}"),
     }
 }
 
@@ -28,8 +28,8 @@ fn gen_aug_portrait(card: &Card) -> Vec<u8> {
             "Rare" | "Unique" => "rare",
             r => unreachable!("{}", r)
         },
-        if let Some(t) = Temple::from(card.temple).flags().next() {
-            match *t {
+        if let Some(t) = card.temple.iter().next() {
+            match t {
                 Temple::BEAST => "beast",
                 Temple::UNDEAD => "undead",
                 Temple::TECH => "tech",

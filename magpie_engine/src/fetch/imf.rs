@@ -1,8 +1,9 @@
-//! Implementation for [IMF] set
+//! Implementation for [IMF] set.
 //!
 //! [IMF]: https://107zxz.itch.io/inscryption-multiplayer-godot
 
-use crate::{Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
+use crate::helper::FlagsExt;
+use crate::{Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk, Temple, Traits, TraitsFlag};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
@@ -10,9 +11,9 @@ use std::fmt::Display;
 
 use super::{fetch_json, FetchError};
 
-/// Fetch a IMF Set from a url
-pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
-    let set: ImfSetJson = fetch_json(url).map_err(ImfError::FetchError)?;
+/// Fetch a IMF Set from a url.
+pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<(), ()>, ImfError> {
+    let set: ImfSet = fetch_json(url).map_err(ImfError::FetchError)?;
 
     let mut cards = Vec::with_capacity(set.cards.len() + 1);
 
@@ -44,15 +45,27 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
             description: c.description,
 
             rarity: if c.rare { Rarity::RARE } else { Rarity::COMMON },
-            temple: Temple::EMPTY
+            temple: Temple::empty()
                 .set_if(Temple::BEAST, c.blood_cost != 0)
                 .set_if(Temple::UNDEAD, c.bone_cost != 0)
                 .set_if(Temple::TECH, c.energy_cost != 0)
-                .set_if(Temple::MAGICK, !c.mox_cost.is_empty())
-                .into(),
+                .set_if(Temple::MAGICK, !c.mox_cost.is_empty()),
             tribes: None,
 
-            attack: c.attack,
+            attack: {
+                if c.atkspecial.is_empty() {
+                    Attack::Num(c.attack)
+                } else {
+                    let atk = c.atkspecial.as_str();
+                    Attack::SpAtk(match atk {
+                        "mox" => SpAtk::MOX,
+                        "green_mox" => SpAtk::GREEN_MOX,
+                        "mirror" => SpAtk::MIRROR,
+                        "ant" => SpAtk::ANT,
+                        _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
+                    })
+                }
+            },
             health: c.health,
             sigils: c
                 .sigils
@@ -66,17 +79,6 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 })
                 .collect(),
 
-            sp_atk: match c.atkspecial.as_str() {
-                "" => None,
-                atk => Some(match atk {
-                    "mox" => SpAtk::MOX,
-                    "green_mox" => SpAtk::GREEN_MOX,
-                    "mirror" => SpAtk::MIRROR,
-                    "ant" => SpAtk::ANT,
-                    _ => return Err(ImfError::InvalidSpAtk(c.atkspecial)),
-                }),
-            },
-
             costs: ((c.blood_cost > 0)
                 | (c.bone_cost > 0)
                 | (c.energy_cost > 0)
@@ -88,24 +90,23 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
                 mox: c
                     .mox_cost
                     .iter()
-                    .fold(Mox::EMPTY, |flags, mox| match mox.as_str() {
-                        "Orange" => flags | Mox::R,
+                    .fold(Mox::empty(), |flags, mox| match mox.as_str() {
+                        "Orange" => flags | Mox::O,
                         "Green" => flags | Mox::G,
                         "Blue" => flags | Mox::B,
                         _ => unreachable!(),
-                    })
-                    .into(),
+                    }),
                 mox_count: None,
+                extra: (),
             }),
 
             traits: (c.conduit | c.banned | c.nosac | c.nohammer).then(|| Traits {
                 strings: None,
-                flags: TraitsFlag::EMPTY
+                flags: TraitsFlag::empty()
                     .set_if(TraitsFlag::CONDUCTIVE, c.conduit)
                     .set_if(TraitsFlag::BAN, c.banned)
                     .set_if(TraitsFlag::TERRAIN, c.nosac)
-                    .set_if(TraitsFlag::HARD, c.nohammer)
-                    .into(),
+                    .set_if(TraitsFlag::HARD, c.nohammer),
             }),
 
             related: {
@@ -140,11 +141,11 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> Result<Set<()>, ImfError> {
 }
 
 #[derive(Debug)]
-/// Error that happen when calling [`fetch_imf_set`]
+/// Error that happen when calling [`fetch_imf_set`].
 pub enum ImfError {
-    /// Error when calling [`fetch_json`]
+    /// Error when calling [`fetch_json`].
     FetchError(FetchError),
-    /// Invalid `atkspecial` when converting to [`Card`]
+    /// Invalid `atkspecial` when converting to [`Card`].
     InvalidSpAtk(String),
 }
 
@@ -158,18 +159,18 @@ impl Display for ImfError {
 }
 
 impl Error for ImfError {}
-/// Json scheme for IMF set
+/// Json scheme for IMF set.
 #[derive(Deserialize, Debug)]
-struct ImfSetJson {
+struct ImfSet {
     ruleset: String,
-    cards: Vec<ImfCardJson>,
+    cards: Vec<ImfCard>,
     sigils: HashMap<String, String>,
 }
 
-/// Json scheme for IMF card
+/// Json scheme for IMF card.
 #[derive(Debug, Deserialize)]
 #[allow(clippy::struct_excessive_bools)]
-struct ImfCardJson {
+struct ImfCard {
     pub name: String,
 
     #[serde(default)]

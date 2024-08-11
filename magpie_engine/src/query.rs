@@ -1,8 +1,8 @@
 //! Implementation for querying card
 //!
 //! To query a card you first start with creating a [`QueryBuilder`] then build up your query using
-//! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`]
-use crate::{Card, Costs, Rarity, Set, SpAtk, Traits};
+//! [`Filters`] then finally calling [`QueryBuilder::query`] to obtain a [`Query`].
+use crate::{Attack, Card, Costs, Rarity, Set, SpAtk, Temple, Traits};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
@@ -11,21 +11,23 @@ use std::vec;
 /// The query object containing your results and infomation about the filter that give you
 /// the results.
 #[derive(Debug)]
-pub struct Query<'a, C, F>
+pub struct Query<'a, E, C, F>
 where
-    C: Clone,
-    F: ToFilter<C>,
+    E: Clone,
+    C: Clone + PartialEq,
+    F: ToFilter<E, C>,
 {
-    /// The result of this query
-    pub cards: Vec<&'a Card<C>>,
-    /// The filter that produce this query
-    pub filters: Vec<Filters<C, F>>,
+    /// The result of this query.
+    pub cards: Vec<&'a Card<E, C>>,
+    /// The filter that produce this query.
+    pub filters: Vec<Filters<E, C, F>>,
 }
 
-impl<C, F> Display for Query<'_, C, F>
+impl<E, C, F> Display for Query<'_, E, C, F>
 where
-    C: Clone,
-    F: ToFilter<C>,
+    E: Clone,
+    C: Clone + PartialEq,
+    F: ToFilter<E, C>,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -41,32 +43,34 @@ where
 }
 
 /// Type shorthand for a filter.
-pub type FilterFn<C> = Box<dyn Fn(&Card<C>) -> bool>;
+pub type FilterFn<E, C> = Box<dyn Fn(&Card<E, C>) -> bool>;
 
-/// Query builder, it contain the set and is the main way to query cards
+/// Query builder, it contain the set and is the main way to query cards.
 ///
 /// You must first build up your query then lastly call `.query()` to compile all the condition and
-/// start querying for cards
-pub struct QueryBuilder<'a, C, F>
+/// start querying for cards.
+pub struct QueryBuilder<'a, E, C, F>
 where
-    C: Clone,
-    F: ToFilter<C>,
+    E: Clone,
+    C: Clone + PartialEq,
+    F: ToFilter<E, C>,
 {
-    /// All the set that is use for this query
-    pub sets: Vec<&'a Set<C>>,
+    /// All the set that is use for this query.
+    pub sets: Vec<&'a Set<E, C>>,
 
-    filters: Vec<Filters<C, F>>,
-    funcs: Vec<FilterFn<C>>,
+    filters: Vec<Filters<E, C, F>>,
+    funcs: Vec<FilterFn<E, C>>,
 }
 
-impl<'a, C, F> QueryBuilder<'a, C, F>
+impl<'a, E, C, F> QueryBuilder<'a, E, C, F>
 where
-    C: Clone + 'static,
-    F: ToFilter<C> + 'static,
+    C: Clone + PartialEq + 'static,
+    E: Clone + 'static,
+    F: ToFilter<E, C> + 'static,
 {
     /// Create a new [`QueryBuilder`] from a collection of set.
     #[must_use]
-    pub fn new(sets: Vec<&'a Set<C>>) -> Self {
+    pub fn new(sets: Vec<&'a Set<E, C>>) -> Self {
         QueryBuilder {
             sets,
             filters: vec![],
@@ -76,7 +80,7 @@ where
 
     /// Create a new [`QueryBuilder`] from some sets and filters.
     #[must_use]
-    pub fn with_filters(sets: Vec<&'a Set<C>>, filters: Vec<Filters<C, F>>) -> Self {
+    pub fn with_filters(sets: Vec<&'a Set<E, C>>, filters: Vec<Filters<E, C, F>>) -> Self {
         QueryBuilder {
             funcs: filters.clone().into_iter().map(|f| f.to_fn()).collect(),
             sets,
@@ -86,7 +90,7 @@ where
 
     /// Add a new filter to this query.
     #[must_use]
-    pub fn add_filter(mut self, filter: Filters<C, F>) -> Self {
+    pub fn add_filter(mut self, filter: Filters<E, C, F>) -> Self {
         self.filters.push(filter.clone());
         self.funcs.push(filter.to_fn());
         self
@@ -94,8 +98,8 @@ where
 
     /// Compile all the query and give you the result.
     #[must_use]
-    pub fn query(self) -> Query<'a, C, F> {
-        let filter = move |c: &Card<C>| self.funcs.iter().all(move |f| f(c));
+    pub fn query(self) -> Query<'a, E, C, F> {
+        let filter = move |c: &Card<E, C>| self.funcs.iter().all(move |f| f(c));
 
         Query {
             filters: self.filters,
@@ -109,26 +113,31 @@ where
     }
 }
 
-/// [`Ordering`](std::cmp::Ordering) extension for more ordering
+/// [`Ordering`](std::cmp::Ordering) extension for more ordering.
 #[derive(Debug, Clone)]
 pub enum QueryOrder {
-    /// Greater than another
+    /// Greater than another.
     Greater,
-    /// Greater than or equal to another
+    /// Greater than or equal to another.
     GreaterEqual,
-    /// Equal to another
+    /// Equal to another.
     Equal,
-    /// Less than or equal to another
+    /// Less than or equal to another.
     LessEqual,
-    /// Less than another
+    /// Less than another.
     Less,
 }
 
-/// Enum for When query stuff
+/// Filters to be apply to when querying card.
+///
+/// You can add custom filter by providing the `F` generic and implementing [`ToFilter`] trait for
+/// it.
 #[derive(Debug, Clone)]
-pub enum Filters<C, F>
+pub enum Filters<E, C, F>
 where
-    F: ToFilter<C>,
+    E: Clone,
+    C: Clone + PartialEq,
+    F: ToFilter<E, C>,
 {
     /// Filter for card name.
     ///
@@ -146,21 +155,21 @@ where
     /// Filter for card rarity
     ///
     /// The value in this variant is bit flags to match against.
-    Temple(u16),
+    Temple(Temple),
     /// Filter for card tribe
     ///
     /// The value is the tribe or tribes to match against.
     Tribe(Option<String>),
 
-    /// Filter for the card attack
+    /// Filter for the card attack.
     ///
     /// The first value is what what qualifier or comparasion to compare the attack against, the
-    /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
+    /// second is the value to compare against.
     Attack(QueryOrder, isize),
-    /// Filter for the card attack
+    /// Filter for the card attack.
     ///
     /// The first value is what what qualifier or comparasion to compare the health against, the
-    /// second is for equality (mainly for >=, <=) and lastly is the value to compare against
+    /// second is the value to compare against.
     Health(QueryOrder, isize),
 
     /// Filter for card sigil
@@ -171,38 +180,49 @@ where
     /// filter for card special attack.
     ///
     /// The value in this variant is the special attack to filter for.
-    SpAtk(Option<SpAtk>),
+    SpAtk(SpAtk),
 
-    /// Filter for card cost
+    /// filter for card special attack saved as [`String`].
     ///
-    /// The value in this variant is cost table to filterfor
-    Costs(Option<Costs>),
-    /// Filter for card trait
+    /// The value in this variant is the special attack to filter for.
+    StrAtk(String),
+
+    /// Filter for card cost.
     ///
-    /// The value in this variant is trait table to filter for
+    /// The value in this variant is cost table to filter for.
+    Costs(Option<Costs<C>>),
+    /// Filter for card trait.
+    ///
+    /// The value in this variant is trait table to filter for.
     Traits(Option<Traits>),
 
     /// Logical `or` between 2 filters instead of the default and.
-    Or(Box<Filters<C, F>>, Box<Filters<C, F>>),
+    Or(Box<Filters<E, C, F>>, Box<Filters<E, C, F>>),
     /// Logical `not` for a filter.
-    Not(Box<Filters<C, F>>),
+    Not(Box<Filters<E, C, F>>),
 
     /// Extra filter you can add.
     Extra(F),
 
     #[doc(hidden)]
     McGuffin(Infallible, PhantomData<C>),
+    #[doc(hidden)]
+    Cake(Infallible, PhantomData<E>),
 }
 
 /// Traits for converting a type to a [`FilterFn`].
 ///
 /// The generic is for the cards extension.
-pub trait ToFilter<C>: Clone {
-    /// Convert the value into a [`FilterFn`]
-    fn to_fn(self) -> FilterFn<C>;
+pub trait ToFilter<E, C>: Clone
+where
+    E: Clone,
+    C: Clone + PartialEq,
+{
+    /// Convert the value into a [`FilterFn`].
+    fn to_fn(self) -> FilterFn<E, C>;
 }
 
-/// Generate code to help with matching [`QueryOrder`]
+/// Generate code to help with matching [`QueryOrder`].
 #[macro_export]
 macro_rules! match_query_order {
     ($ord:expr, $a:expr, $b:expr) => {
@@ -216,12 +236,13 @@ macro_rules! match_query_order {
     };
 }
 
-impl<C, F> ToFilter<C> for Filters<C, F>
+impl<E, C, F> ToFilter<E, C> for Filters<E, C, F>
 where
-    C: Clone + 'static,
-    F: ToFilter<C> + 'static,
+    E: Clone + 'static,
+    C: Clone + PartialEq + 'static,
+    F: ToFilter<E, C> + 'static,
 {
-    fn to_fn(self) -> FilterFn<C> {
+    fn to_fn(self) -> FilterFn<E, C> {
         match self {
             Filters::Name(name) => {
                 Box::new(move |c| c.name.to_lowercase().contains(&name.to_lowercase()))
@@ -238,9 +259,13 @@ where
                     .contains(&tribes.as_ref().unwrap().to_lowercase()),
                 _ => c.tribes == tribes,
             }),
-            Filters::Attack(ord, attack) => {
-                Box::new(move |c| match_query_order!(ord, c.attack, attack))
-            }
+            Filters::Attack(ord, attack) => Box::new(move |c| {
+                if let Attack::Num(a) = c.attack {
+                    match_query_order!(ord, a, attack)
+                } else {
+                    false
+                }
+            }),
             Filters::Health(ord, health) => {
                 Box::new(move |c| match_query_order!(ord, c.health, health))
             }
@@ -253,7 +278,20 @@ where
                         .any(|s| s.eq(&lower))
                 })
             }
-            Filters::SpAtk(a) => Box::new(move |c| c.sp_atk == a),
+            Filters::SpAtk(a) => Box::new(move |c| {
+                if let Attack::SpAtk(sp) = &c.attack {
+                    *sp == a
+                } else {
+                    false
+                }
+            }),
+            Filters::StrAtk(s) => Box::new(move |c| {
+                if let Attack::Str(str) = &c.attack {
+                    *str == s
+                } else {
+                    false
+                }
+            }),
             Filters::Costs(cost) => Box::new(move |c| c.costs == cost),
             Filters::Traits(traits) => Box::new(move |c| c.traits == traits),
 
@@ -270,13 +308,17 @@ where
 
             Filters::Extra(filter) => filter.to_fn(),
 
-            Filters::McGuffin(..) => unreachable!(),
+            Filters::McGuffin(..) | Filters::Cake(..) => unreachable!(),
         }
     }
 }
 
-impl<C> ToFilter<C> for () {
-    fn to_fn(self) -> FilterFn<C> {
+impl<E, C> ToFilter<E, C> for ()
+where
+    E: Clone,
+    C: Clone + PartialEq,
+{
+    fn to_fn(self) -> FilterFn<E, C> {
         unimplemented!()
     }
 }
