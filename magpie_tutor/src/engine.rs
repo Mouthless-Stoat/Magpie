@@ -67,6 +67,7 @@ pub struct MagpieCosts {
     pub link: isize,
     /// Gold from [`DescCosts`]
     pub gold: isize,
+    pub skull: isize,
 }
 
 // there no error here ra is just having a stroke
@@ -77,6 +78,23 @@ impl UpgradeCard<MagpieExt, MagpieCosts> for Card<AugExt, AugCosts> {
             costs: |c: Costs<AugCosts>| MagpieCosts {
                 shattered_count: c.extra.shattered_count,
                 max: c.extra.max,
+                link: 0,
+                gold: 0,
+                skull: 0,
+            },
+            ..self
+        }
+    }
+}
+
+impl UpgradeCard<MagpieExt, MagpieCosts> for Card<CtiExt, CtiCosts> {
+    fn upgrade(self) -> Card<MagpieExt, MagpieCosts> {
+        upgrade_card! {
+            extra: MagpieExt { artist: self.extra.artist },
+            costs: |c: Costs<CtiCosts>| MagpieCosts {
+                shattered_count: c.extra.shattered_count,
+                max: c.extra.max,
+                skull: c.extra.skull,
                 link: 0,
                 gold: 0,
             },
@@ -94,6 +112,7 @@ impl UpgradeCard<MagpieExt, MagpieCosts> for Card<(), DescCosts> {
                 max: 0,
                 link: c.extra.link,
                 gold: c.extra.gold,
+                skull: 0,
             },
             ..self
         }

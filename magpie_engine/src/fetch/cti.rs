@@ -62,11 +62,12 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt, CtiCosts>, CtiError> {
         let mut max = 0;
         let mut skull = 0;
 
-        if card.cost != "free" && !card.cost.is_empty() {
+        if card.cost != "Free" && !card.cost.is_empty() {
             let mut t: Costs<CtiCosts> = Costs::default();
 
             for c in card
                 .cost
+                .to_lowercase()
                 .replace("bones", "bone")
                 .replace("rubies", "ruby")
                 .replace("emeralds", "emerald")
@@ -207,7 +208,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt, CtiCosts>, CtiError> {
                 "Uncommon" => Rarity::UNCOMMON,
                 "Rare" => Rarity::RARE,
                 "Talking" => Rarity::UNIQUE,
-                "Side Deck" => Rarity::SIDE,
+                "Side-Deck" => Rarity::SIDE,
                 "Deathcard" => Rarity::DEATHCARD,
                 "Common (Joke Card)" => Rarity::JOKECARD,
                 _ => return Err(CtiError::UnknownRarity(card.rarity)),
@@ -216,8 +217,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt, CtiCosts>, CtiError> {
                 "Beast" => Temple::BEAST,
                 "Undead" => Temple::UNDEAD,
                 "Tech" => Temple::TECH,
-                "Magick" => Temple::MAGICK,
-                "Fool" => Temple::FOOL,
+                "Magicks" => Temple::MAGICK,
                 "Terrain/Extras" => Temple::EXTRAS,
                 _ => return Err(CtiError::UnknownTemple(card.temple))
             }.into(),
@@ -305,7 +305,7 @@ struct CtiCard {
     attack: String,
     #[serde(rename = "Health")]
     health: String,
-    #[serde(rename = "Flavor Text")]
+    #[serde(rename = "Flavor")]
     description: String,
     #[serde(rename = "Token")]
     token: String,

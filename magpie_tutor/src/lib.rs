@@ -135,10 +135,10 @@ lazy_static! {
                 g: 9,
                 b: 4,
                 y: 2,
-                k: 1,
                 a: 5,
                 o: 3,
-                t: 7
+                t: 7,
+                k: 1
             }),
             extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
@@ -146,14 +146,15 @@ lazy_static! {
                     g: 9,
                     b: 8,
                     y: 4,
-                    k: 1,
                     a: 7,
                     o: 3,
-                    t: 2
+                    t: 2,
+                    k: 1
                 }),
                 max: 451,
                 link: 6,
-                gold: 24601
+                gold: 24601,
+                skull: 595
             }
         }),
         traits: Some(Traits {
