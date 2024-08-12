@@ -3,8 +3,8 @@
 //! [Custom TCG Inscryption]: https://www.notion.so/inscryption-pvp-wiki/Custom-TCG-Inscryption-3f22fc55858d4cfab2061783b5120f87
 
 use super::{fetch_json, FetchError};
-use crate::Rarity;
-use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple, Traits};
+use crate::{Attack, Rarity};
+use crate::{self_upgrade, Card, Costs, Mox, MoxCount, Set, SetCode, Temple};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -12,20 +12,25 @@ use std::fmt::Display;
 /// Ctimented's [`Card`] extensions
 #[derive(Debug, Default, Clone)]
 pub struct CtiExt {
-    /// Shattered mox cost count.
-    pub shattered_count: Option<MoxCount>,
-    /// Max energy cell cost.
-    pub max: isize,
-    /// Skulls Cost
-    pub skull: isize,
+        /// Artist credit.
+        pub artist: String,
+}
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct CtiCosts {
+        /// Shattered mox cost count.
+        pub shattered_count: Option<MoxCount>,
+        /// Max energy cell cost.
+        pub max: isize,
+        /// Skulls Cost
+        pub skull: isize,
 }
 
-self_upgrade!(CtiExt);
+self_upgrade!(CtiExt, CtiCosts);
 
 /// Fetch Custom TCG Inscryption from the
 /// [sheet](https://docs.google.com/spreadsheets/d/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/edit?gid=0#gid=0).
 #[allow(clippy::too_many_lines)]
-pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
+pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt, CtiCosts>, CtiError> {
     let raw_card: Vec<CtiCard> =
         fetch_json("https://opensheet.elk.sh/152SuTx1fVc4zsqL4_zVDPx69sd9vYWikc2Ce9Y5vhJE/1")
             .map_err(CtiError::CardFetchError)?;
@@ -58,7 +63,7 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
         let mut skull = 0;
 
         if card.cost != "free" && !card.cost.is_empty() {
-            let mut t = Costs::default();
+            let mut t: Costs<CtiCosts> = Costs::default();
 
             for c in card
                 .cost
@@ -96,11 +101,11 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                     "blood" => t.blood += count,
                     "bone" => t.bone += count,
                     "energy" => t.energy += count,
-                    "max" => max += count,
-                    "skull" => skull += count,
+                    "max" => t.extra.max += count,
+                    "skull" => t.extra.skull += count,
                     "shattered" => match cost.pop().unwrap().as_str() {
                         "ruby" => {
-                            t.mox |= Mox::R;
+                            t.mox |= Mox::O;
                             shattered_count.r += count as usize;
                         }
                         "emerald" => {
@@ -120,18 +125,18 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                             shattered_count.t += count as usize;
                         }
                         "amethyst" => {
-                            t.mox |= Mox::P;
-                            shattered_count.p += count as usize;
+                            t.mox |= Mox::A;
+                            shattered_count.a += count as usize;
                         }
                         "garnet" => {
-                            t.mox |= Mox::O;
+                            t.mox |= Mox::R;
                             shattered_count.o += count as usize;
                         }
                         m => return Err(CtiError::UnknowMox(m.to_owned())),
                     },
                     m @ ("ruby" | "sapphire" | "emerald" | "prism" | "topaz" | "amethyst" | "garnet") => match m {
                         "ruby" => {
-                            t.mox |= Mox::R;
+                            t.mox |= Mox::O;
                             mox_count.r += count as usize;
                         }
                         "emerald" => {
@@ -151,11 +156,11 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                             mox_count.t += count as usize;
                         }
                         "amethyst" => {
-                            t.mox |= Mox::P;
-                            mox_count.p += count as usize;
+                            t.mox |= Mox::A;
+                            mox_count.a += count as usize;
                         }
                         "garnet" => {
-                            t.mox |= Mox::O;
+                            t.mox |= Mox::R;
                             mox_count.o += count as usize;
                         }
                         _ => unreachable!(),
@@ -164,8 +169,13 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                     c => return Err(CtiError::UnknowCost(c.to_string())),
                 }
             }
+            // only include the moxes if they are not the default all 1
             if mox_count != MoxCount::default() {
                 t.mox_count = Some(mox_count);
+            }
+            
+            if shattered_count != MoxCount::default() {
+                t.extra.shattered_count = Some(shattered_count);
             }
             costs = Some(t);
         } else {
@@ -212,11 +222,10 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
                 _ => return Err(CtiError::UnknownTemple(card.temple))
             }.into(),
             tribes: None,
-
-            attack: card.attack.parse().unwrap_or(0),
+            
+            attack: Attack::Num(card.attack.parse().unwrap_or(0)),
             health: card.health.parse().unwrap_or(0),
             sigils,
-            sp_atk: None,
 
             costs,
 
@@ -228,10 +237,8 @@ pub fn fetch_cti_set(code: SetCode) -> Result<Set<CtiExt>, CtiError> {
             },
 
             extra: CtiExt {
-                max,
-                shattered_count: (!shattered_count.eq(&MoxCount::default())).then_some(shattered_count),
-                skull,
-            },
+                artist: "not found".to_string(),
+            }
         };
 
         cards.push(card);

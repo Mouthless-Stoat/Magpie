@@ -168,6 +168,8 @@ pub enum Rarity {
     ///
     /// This usually map to card that you can have only have 1 of this rarity per deck.
     UNIQUE,
+    JOKECARD,
+    DEATHCARD,
 }
 
 impl Display for Rarity {
@@ -181,6 +183,8 @@ impl Display for Rarity {
                 Rarity::UNCOMMON => "Uncommon",
                 Rarity::RARE => "Rare",
                 Rarity::UNIQUE => "Unique",
+                Rarity::JOKECARD => "Joke Card",
+                Rarity::DEATHCARD => "Death Card",
             }
         )
     }
@@ -202,6 +206,8 @@ bitflags! {
         const FOOL = 1 << 4;
         /// The Artistry or Galliard Temple from Descryprion.
         const ARTISTRY = 1 << 5;
+        // Extras that dont fit normal temples
+        const EXTRAS = 1 << 6;
     }
 }
 
@@ -249,11 +255,16 @@ bitflags! {
         const B = 1 << 2;
         /// Gray or Prism Mox
         const Y = 1 << 3;
-
         /// Black or Onyx Mox.
         const K = 1 << 4;
         /// Plus 1 indicator for Descryption
         const P = 1<< 5;
+        // Purple or Amethyst Mox
+        const A = 1 << 6;
+        // Yellow or Topaz Mox
+        const T = 1 << 7;
+        // Red or Garnet Mox
+        const R = 1 << 8;
     }
 }
 
@@ -270,6 +281,12 @@ pub struct MoxCount {
     pub y: usize,
     /// The Black component.
     pub k: usize,
+    /// The Purple Component
+    pub a: usize,
+    /// The Yellow Component
+    pub t: usize,
+    /// The True Red Component
+    pub o: usize,
 }
 
 impl Default for MoxCount {
@@ -280,6 +297,9 @@ impl Default for MoxCount {
             b: 1,
             y: 1,
             k: 1,
+            a: 1,
+            t: 1,
+            o: 1,
         }
     }
 }

@@ -107,6 +107,7 @@ lazy_static! {
             ---
             augmented (aug) => fetch_aug_set,
             descryption (des) => fetch_desc_set,
+            customtcginscryption (cti) => fetch_cti_set,
         }
     };
 
@@ -134,7 +135,10 @@ lazy_static! {
                 g: 9,
                 b: 4,
                 y: 2,
-                k: 1
+                k: 1,
+                a: 5,
+                o: 3,
+                t: 7
             }),
             extra: MagpieCosts {
                 shattered_count: Some(MoxCount {
@@ -142,7 +146,10 @@ lazy_static! {
                     g: 9,
                     b: 8,
                     y: 4,
-                    k: 1
+                    k: 1,
+                    a: 7,
+                    o: 3,
+                    t: 2
                 }),
                 max: 451,
                 link: 6,

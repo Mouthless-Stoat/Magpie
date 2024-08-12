@@ -8,10 +8,12 @@ use std::fmt::Display;
 mod aug;
 mod desc;
 mod imf;
+mod cti;
 
 pub use aug::*;
 pub use desc::*;
 pub use imf::*;
+pub use cti::*;
 
 /// Error that happen when calling [`fetch_json`].
 #[derive(Debug)]
