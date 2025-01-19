@@ -1,3 +1,6 @@
+use serde::Deserialize;
+use serde::Serialize;
+
 use crate::Card;
 use crate::UpgradeCard;
 use std::collections::HashMap;
@@ -27,7 +30,7 @@ use std::fmt::Display;
 /// assert!(SetCode::new("🤓💀🧏").is_none()); // Invalid because it not ascii
 /// assert!(SetCode::new(";;;").is_none()); // These are actually greek question mark
 /// ```
-#[derive(Clone, Copy, Hash)]
+#[derive(Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct SetCode([u8; 3]);
 
 impl SetCode {
@@ -99,8 +102,8 @@ impl Debug for SetCode {
 /// Representation of a set containing info on the set and cards.
 ///
 /// Sets are container for cards, they also carry a few other infomation like the sigils look up
-/// table and pools. Pools are pre-sorted cards into categories.
-#[derive(Clone, Debug)]
+/// table.
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Set<E, C>
 where
     E: Clone,
@@ -119,6 +122,17 @@ where
     /// Set are require to include **every** sigil in this look up table. So you can safely get
     /// value from this table without worrying about [`None`].
     pub sigils_description: HashMap<String, String>,
+}
+
+impl<T, U> Set<T, U>
+where
+    T: for<'de> Deserialize<'de> + Clone,
+    U: for<'de> Deserialize<'de> + Clone + PartialEq,
+{
+    /// Just a wrapper around [`serde_json`] to load a set from json file.
+    pub fn from_json(str: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(str)
+    }
 }
 
 impl<T, U> Set<T, U>

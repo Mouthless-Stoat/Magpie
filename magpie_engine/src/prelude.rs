@@ -9,10 +9,12 @@
 //! ```
 
 pub use crate::{
-    fetch::{
-        fetch_aug_set, fetch_cti_set, fetch_desc_set, fetch_imf_set, AugCosts, AugExt, DescCosts,
-        SetError,
-    },
     query::{FilterFn, Filters, QueryBuilder, QueryOrder, ToFilter},
     *,
+};
+
+#[cfg(feature = "fetch")]
+pub use crate::fetch::{
+    fetch_aug_set, fetch_cti_set, fetch_desc_set, fetch_imf_set, AugBranch, AugCosts, AugExt,
+    DescCosts, SetError,
 };

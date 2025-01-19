@@ -1,4 +1,4 @@
-//! Provide function to fetch json and supported sets.
+//! Provide function to fetch json of supported sets.
 
 use isahc::ReadResponseExt;
 use serde::Deserialize;
@@ -25,7 +25,7 @@ pub type SetResult<E, C> = Result<Set<E, C>, SetError>;
 pub enum FetchError {
     /// [`isahc`](https://docs.rs/isahc) error or error that happen when trying to fetch the json data.
     IsahcError(isahc::Error),
-    /// [`serde`] error or error that happen when parsing the json data to the target type..
+    /// [`serde`] error or error that happen when parsing the json data to the target type.
     SerdeError(serde_json::Error),
 }
 
@@ -75,19 +75,20 @@ where
 /// Error when fetching any set.
 #[derive(Debug)]
 pub enum SetError {
-    /// Error when trying to [`fetch_json`] cards.
+    /// Error when trying to [`fetch_json`] cards. Also contains the url that it was trying to
+    /// fetch
     FetchError(FetchError, String),
-    /// Unknown Temple or Scrybe.
+    /// Unknown Temple or Scrybe. Contains the temple that causes the error.
     UnknownTemple(String),
-    /// Unknown rarity.
+    /// Unknown rarity. Contains the rarity that causes the error.
     UnknownRarity(String),
-    /// Unknown Mox color.
+    /// Unknown Mox color. Contains the mox color that causes the error.
     UnknownMoxColor(String),
-    /// Unknown cost type.
+    /// Unknown cost type. Contains the cost that causes the error.
     UnknownCost(String),
-    /// Unknown special attack type
+    /// Unknown special attack type. Contains the special attack that causes the error.
     UnknownSpAtk(String),
-    /// Invalid cost format
+    /// Invalid cost format. Contains the cost that have the wrong format.
     InvalidCostFormat(String),
 }
 

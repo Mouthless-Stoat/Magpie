@@ -4,6 +4,8 @@ use std::hash::Hash;
 use std::hash::Hasher;
 
 use bitflags::bitflags;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::SetCode;
 
@@ -12,7 +14,7 @@ macro_rules! card {
         /// Represent a card containing all the infomation on the cards.
         ///
         /// You can add extra infomation using the [`Card::extra`] field and the generic `E`
-        #[derive(Debug, Clone)]
+        #[derive(Deserialize, Serialize, Debug, Clone)]
         pub struct Card<E, C>
         where
             E: Clone,
@@ -144,7 +146,7 @@ where
 }
 
 /// Rarities or tiers cards belong to
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Rarity {
     /// Side deck rarity for card.
     ///
@@ -188,7 +190,7 @@ impl Display for Rarity {
 
 bitflags! {
     /// Temples, binder or archetypes card belong to.
-    #[derive(Default, Debug, Clone, Copy, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
     pub struct Temple: u16 {
         /// The Beast or Leshy Temple.
         const BEAST = 1;
@@ -228,7 +230,7 @@ impl Display for Temple {
 }
 
 /// Enum for the diffrent attack type.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Attack {
     /// Numeric attack value.
     Num(isize),
@@ -239,7 +241,7 @@ pub enum Attack {
 }
 
 /// Special attack for cards.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum SpAtk {
     /// Card that gain power from Mox.
@@ -278,7 +280,7 @@ impl Display for SpAtk {
 
 bitflags! {
     /// Bits flag for Moxes.
-    #[derive(Default, Debug, Clone, Copy, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
     pub struct Mox: u16 {
         /// Orange or Ruby Mox.
         const O = 1;
@@ -305,7 +307,7 @@ bitflags! {
 }
 
 /// Component for when card cost multiple of 1 Mox color.
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct MoxCount {
     /// The Orange component.
     pub o: usize,
@@ -328,7 +330,7 @@ pub struct MoxCount {
 }
 
 /// Contain all the cost info.
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct Costs<E> {
     /// Other case where the card are not free.
     /// Blood cost for the card.
@@ -427,7 +429,7 @@ where
 
 bitflags! {
     /// Bit flags for a card trait.
-    #[derive(Default, Debug, Clone, Copy, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
     pub struct TraitsFlag: u16 {
         /// If this card is conductive.
         const CONDUCTIVE = 1;
@@ -462,7 +464,7 @@ impl Display for TraitsFlag {
 }
 
 /// Store both flag based traits and string based traits.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Traits {
     /// Traits that are not flags so they are [`String`].
     ///

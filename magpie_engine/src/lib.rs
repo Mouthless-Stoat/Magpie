@@ -13,7 +13,9 @@ pub mod prelude;
 
 mod helper;
 
+#[cfg(feature = "fetch")]
 pub mod fetch;
+
 pub mod query;
 
 pub use data::cards::*;

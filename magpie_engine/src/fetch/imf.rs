@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     fetch::fetch_json, helper::FlagsExt, Attack, Card, Costs, Mox, Rarity, Set, SetCode, SpAtk,
@@ -143,7 +143,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> SetResult<(), ()> {
 }
 
 /// Json scheme for IMF set.
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 struct ImfSet {
     ruleset: String,
     cards: Vec<ImfCard>,
@@ -151,7 +151,7 @@ struct ImfSet {
 }
 
 /// Json scheme for IMF card.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(clippy::struct_excessive_bools)]
 struct ImfCard {
     pub name: String,

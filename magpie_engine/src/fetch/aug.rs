@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     fetch::fetch_json, self_upgrade, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode,
@@ -14,14 +14,14 @@ use crate::{
 use super::{SetError, SetResult};
 
 /// Augmented's [`Card`] extensions.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct AugExt {
     /// Artist credit.
     pub artist: String,
 }
 
 /// Augmented's [`Costs`] extensions.
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AugCosts {
     /// Shattered mox cost count.
     pub shattered_count: Option<MoxCount>,
