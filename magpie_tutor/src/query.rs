@@ -11,8 +11,8 @@ use poise::serenity_prelude::{colours::roles, CreateEmbed};
 
 use crate::{Filters, Set};
 
-mod lexer;
-mod parser;
+pub mod lexer;
+pub mod parser;
 
 use lexer::tokenize_query;
 
