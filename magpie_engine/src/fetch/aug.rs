@@ -4,32 +4,15 @@
 
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{
-    fetch::fetch_json, self_upgrade, Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode,
-    Temple, Traits, TraitsFlag,
+    ext::aug::{AugCosts, AugExt},
+    fetch::fetch_json,
+    Attack, Card, Costs, Mox, MoxCount, Rarity, Set, SetCode, Temple, Traits, TraitsFlag,
 };
 
 use super::{SetError, SetResult};
-
-/// Augmented's [`Card`] extensions.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct AugExt {
-    /// Artist credit.
-    pub artist: String,
-}
-
-/// Augmented's [`Costs`] extensions.
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-pub struct AugCosts {
-    /// Shattered mox cost count.
-    pub shattered_count: Option<MoxCount>,
-    /// Max energy cell cost.
-    pub max: isize,
-}
-
-self_upgrade!(AugExt, AugCosts);
 
 /// The branches of Augmented
 pub enum AugBranch {

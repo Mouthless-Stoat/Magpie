@@ -16,6 +16,7 @@ mod helper;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 
+pub mod ext;
 pub mod query;
 
 pub use data::cards::*;

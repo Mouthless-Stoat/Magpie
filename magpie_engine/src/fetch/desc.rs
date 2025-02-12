@@ -3,19 +3,11 @@ use std::collections::HashMap;
 use serde::Deserialize;
 
 use crate::{
-    fetch::fetch_json, Attack, Card, Costs, Mox, Rarity, Set, SetCode, Temple, Traits, TraitsFlag,
+    ext::desc::DescCosts, fetch::fetch_json, Attack, Card, Costs, Mox, Rarity, Set, SetCode,
+    Temple, Traits, TraitsFlag,
 };
 
 use super::{SetError, SetResult};
-
-/// Descryption's [`Costs`] extension.
-#[derive(Default, Clone, PartialEq)]
-pub struct DescCosts {
-    /// Links cost.
-    pub link: isize,
-    /// Gold cost.
-    pub gold: isize,
-}
 
 /// Fetch Descryption from the
 /// [sheet](https://docs.google.com/spreadsheets/d/1EjOtqUrjsMRl7wiVMN7tMuvAHvkw7snv1dNyFJIFbaE).
