@@ -4,7 +4,7 @@ pub mod aug {
     //! Extension type for Augmented
     use serde::{Deserialize, Serialize};
 
-    use crate::{self_upgrade, MoxCount};
+    use crate::{self_upgrade, Card, MoxCount};
 
     /// Augmented's [`Card`] extensions.
     #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -13,7 +13,7 @@ pub mod aug {
         pub artist: String,
     }
 
-    /// Augmented's [`Costs`] extensions.
+    /// Augmented's [`Costs`][crate::Costs] extensions.
     #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
     pub struct AugCosts {
         /// Shattered mox cost count.
@@ -23,6 +23,9 @@ pub mod aug {
     }
 
     self_upgrade!(AugExt, AugCosts);
+
+    /// Type alias for a Augmented [`Card`]
+    pub type AugCard = Card<AugCosts, AugExt>;
 }
 
 pub mod desc {
@@ -30,7 +33,9 @@ pub mod desc {
 
     use serde::{Deserialize, Serialize};
 
-    /// Descryption's [`Costs`] extension.
+    use crate::{self_upgrade, Card};
+
+    /// Descryption's [`Costs`][crate::Costs] extension.
     #[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
     pub struct DescCosts {
         /// Links cost.
@@ -38,4 +43,9 @@ pub mod desc {
         /// Gold cost.
         pub gold: isize,
     }
+
+    self_upgrade!((), DescCosts);
+
+    /// Type alias for a Augmented [`Card`]
+    pub type DescCard = Card<DescCosts, ()>;
 }
