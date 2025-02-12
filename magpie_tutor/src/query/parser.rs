@@ -3,7 +3,8 @@
 //! Contain both the parser and the conversion between [`Keyword`] and [`Filters`]
 //!
 //! The parser is a simple Recursive descent parser. It will emit out a set of keywords then later
-//! then main query function will convert those keyword into filter to put into [`QueryBuilder`]
+//! then main query function will convert those keyword into filter to put into
+//! [`QueryBuilder`]
 //!
 //! Here a simple top down view of the parser in
 //! pesudo EBFN
@@ -36,6 +37,8 @@ use crate::{
 use super::lexer::Token;
 
 #[derive(Debug)]
+/// Intermediate keyword enum to be translated to [`Filters`]
+#[allow(missing_docs)]
 pub enum Keyword {
     Name(String),
     Desc(String),
@@ -70,9 +73,15 @@ macro_rules! tk_to_kw {
 }
 
 #[derive(Debug)]
+/// Error when parsing the query.
 pub enum ParseErr {
+    /// Error when encountering an unexpected keyword.
     InvalidKeyword(Token),
+    /// Error when missing an expected token type.
+    /// Contains the expected token and what received
     ExpectToken(Token, Token),
+    /// Error when missing expected tokens type.
+    /// Contains the expected tokens and what received
     ExpectTokens(Vec<Token>, Token),
 }
 
@@ -96,6 +105,7 @@ impl From<ParseErr> for String {
     }
 }
 
+/// The parser object.
 pub struct QueryParser {
     tokens: Vec<Token>,
 }
@@ -103,15 +113,18 @@ pub struct QueryParser {
 type ParseRes = Result<Keyword, ParseErr>;
 
 impl QueryParser {
+    /// Create a new parser object with a list of tokens.
     pub fn new(mut tokens: Vec<Token>) -> Self {
         tokens.reverse();
         QueryParser { tokens }
     }
 
+    /// Parse the input using a list of tokens.
     pub fn gen_ast_with(tokens: Vec<Token>) -> Result<Vec<Keyword>, ParseErr> {
         Self::new(tokens).gen_ast()
     }
 
+    /// Parse the tokens.
     pub fn gen_ast(mut self) -> Result<Vec<Keyword>, ParseErr> {
         let mut ast = Vec::new();
 
