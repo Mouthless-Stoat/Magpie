@@ -56,6 +56,8 @@ async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
         egg: "Mr.Egg's Goofy";
         ete: "IMF Eternal";
         aug: "Augmented";
+        des: "Descryption";
+        cti: "Custom TCG";
         ---
         "q": "Query instead of normal fuzzy search";
         "*": "Select all supported set";
