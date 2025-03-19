@@ -11,7 +11,7 @@ use poise::serenity_prelude::{
 };
 
 use crate::{
-    current_epoch, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
+    current_epoch, debug, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
     CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
     CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
@@ -24,12 +24,18 @@ mod embed;
 #[allow(clippy::wildcard_imports)]
 use embed::*;
 
+mod sigil;
+#[allow(clippy::wildcard_imports)]
+use sigil::*;
+
 bitflags! {
+    #[derive(Debug)]
     struct Modifier: u8 {
         const QUERY = 1;
         const ALL_SET = 1 << 1;
         const DEBUG = 1 << 2;
         const COMPACT = 1 << 3;
+        const SIGIL = 1<< 4;
     }
 }
 
@@ -106,6 +112,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     '*' => Modifier::ALL_SET,
                     'd' => Modifier::DEBUG,
                     'c' => Modifier::COMPACT,
+                    's' => Modifier::SIGIL,
                     '`' => continue 'outer, // exit this search term
 
                     _ => continue,
@@ -152,6 +159,12 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         }
 
         for set in sets {
+            if modifier.contains(Modifier::SIGIL) {
+                info!("Searching sigil...");
+                embeds.push(sigil_search(set, search_term));
+                done!("Sigil search complete");
+                continue;
+            }
             let FuzzyRes { rank, data: card } = if search_term == "old_data" {
                 FuzzyRes {
                     rank: 4.2,
