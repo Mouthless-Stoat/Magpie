@@ -1,5 +1,5 @@
 //! Contain implementation for generate card embed from card and a few other info
-use poise::serenity_prelude::{CreateEmbed, CreateEmbedFooter};
+use poise::serenity_prelude::{colours::roles, CreateEmbed, CreateEmbedFooter};
 
 use crate::{
     emojis::{number, ToEmoji},
@@ -30,7 +30,12 @@ pub fn gen_embed(rank: f32, card: &Card, set: &Set, compact: bool) -> CreateEmbe
         "aug" | "Aug" | "cti" => aug::gen_embed(card, set, compact),
         "std" | "ete" | "egg" => imf::gen_embed(card, set, compact),
         "des" => desc::gen_embed(card, set, compact),
-        code => todo!("embed for set code is not implemented yet: {code}"),
+        code => (
+            CreateEmbed::new().color(roles::RED).description(format!(
+                "Embed generator for this set code have not been implemented: {code}"
+            )),
+            String::new(),
+        ),
     };
     embed.footer(CreateEmbedFooter::new(format!(
         "{footer}\nMatch {:.2}% with the search term",
