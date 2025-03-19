@@ -64,6 +64,8 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> SetResult<(), ()> {
                         "green_mox" => SpAtk::GREEN_MOX,
                         "mirror" => SpAtk::MIRROR,
                         "ant" => SpAtk::ANT,
+                        "Bell" => SpAtk::BELL,
+                        "Hand" => SpAtk::CARD,
                         _ => return Err(SetError::UnknownSpAtk(c.atkspecial)),
                     })
                 }
