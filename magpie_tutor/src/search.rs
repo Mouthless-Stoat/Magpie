@@ -229,7 +229,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         embeds.push(
             CreateEmbed::new()
                 .title("Too many embeds")
-                .description("Too many added required, Discord only allow up to 10 embeds per message. Try separting your search across multiple message")
+                .description("Too many embeds, Discord only allow up to 10 embeds per message. Try separting your search across multiple message")
                 .color(roles::RED)
         );
     }
