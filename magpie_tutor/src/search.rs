@@ -11,7 +11,7 @@ use poise::serenity_prelude::{
 };
 
 use crate::{
-    current_epoch, debug, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
+    current_epoch, done, fuzzy_best, hash_card_url, info, query::query_message, save_cache,
     CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
     CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };

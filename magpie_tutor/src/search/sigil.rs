@@ -1,8 +1,9 @@
 use poise::serenity_prelude::colours::roles;
 use poise::serenity_prelude::{CreateEmbed, CreateEmbedFooter};
 
-use crate::{debug, fuzzy_best, FuzzyRes, Set};
+use crate::{fuzzy_best, FuzzyRes, Set};
 
+/// Search for a sigil using a set and a name
 pub fn sigil_search(set: &Set, sigil_name: &str) -> CreateEmbed {
     let Some(FuzzyRes { rank, data: name }) = fuzzy_best(
         sigil_name,
