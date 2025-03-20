@@ -41,14 +41,12 @@ pub fn gen_embed(card: &Card, set: &Set, compact: bool) -> EmbedRes {
 
         if !costs.mox.is_empty() {
             let mut mox_cost = String::from("**Mox cost:** ");
-            let count = costs.mox_count.clone().unwrap_or_default();
 
             for m in costs.mox.iter() {
                 match m {
-                    Mox::O => mox_cost.extend(vec![cost::ORANGE; count.o]),
-                    Mox::G => mox_cost.extend(vec![cost::GREEN; count.g]),
-                    Mox::B => mox_cost.extend(vec![cost::BLUE; count.b]),
-                    Mox::Y => mox_cost.extend(vec![cost::GRAY; count.y]),
+                    Mox::O => mox_cost.push_str(cost::ORANGE),
+                    Mox::G => mox_cost.push_str(cost::GREEN),
+                    Mox::B => mox_cost.push_str(cost::BLUE),
                     _ => unreachable!(),
                 }
             }
