@@ -55,7 +55,8 @@ async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
         com: "IMF Competitive";
         egg: "Mr.Egg's Goofy";
         ete: "IMF Eternal";
-        aug: "Augmented";
+        aug: "Augmented Snapshot";
+        Aug: "Augmented Stable";
         des: "Descryption";
         cti: "Custom TCG";
         ---
