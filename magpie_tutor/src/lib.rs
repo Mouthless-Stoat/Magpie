@@ -89,7 +89,7 @@ pub struct CacheData {
 }
 
 /// Location of the cache file.
-pub const CACHE_FILE_PATH: &str = "./cache.bin";
+pub const CACHE_FILE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\cache.bin");
 
 lazy_static! {
     /// The regex use to match for general search.
