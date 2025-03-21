@@ -9,8 +9,8 @@
 
 -   [x] Augmented support
 -   [x] Description support
--   [ ] Modifier support
-    -   [ ] s, search for sigils
+-   [x] Modifier support
+    -   [x] s, search for sigils
     -   [x] c, compact embed
     -   [x] \`, Skip match
     -   [x] q, specifically select query
