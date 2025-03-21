@@ -64,6 +64,8 @@ async fn show_modifiers(ctx: CmdCtx<'_>) -> Res {
         "*": "Select all supported set";
         "d": "Output the raw data instead of embed";
         "c": "Output the embed in compact mode to save space";
+        "s": "Search for sigils instead of cards";
+        "r": "Disallow smart detection for query";
         "\\`": "Skip this search match";
 
     })

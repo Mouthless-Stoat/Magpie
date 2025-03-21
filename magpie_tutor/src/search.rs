@@ -35,7 +35,8 @@ bitflags! {
         const ALL_SET = 1 << 1;
         const DEBUG = 1 << 2;
         const COMPACT = 1 << 3;
-        const SIGIL = 1<< 4;
+        const SIGIL = 1 << 4;
+        const RAW = 1 << 5;
     }
 }
 
@@ -113,6 +114,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     'd' => Modifier::DEBUG,
                     'c' => Modifier::COMPACT,
                     's' => Modifier::SIGIL,
+                    'r' => Modifier::RAW,
                     '`' => continue 'outer, // exit this search term
 
                     _ => continue,
@@ -120,7 +122,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             }
 
             // smart detech query
-            if search_term.contains(':') {
+            if search_term.contains(':') && !t.contains(Modifier::RAW) {
                 t |= Modifier::QUERY;
             }
 
