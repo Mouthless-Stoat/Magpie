@@ -4,11 +4,12 @@ macro_rules! query_help {
     ($($key:ident [$($alias:ident),*]: $desc:literal);*) => {
         concat!(
             "Possible query keyword for searching:\nHow to read: [keyword name] [keyword alias]: [keyword description]\n\n",
-            $(concat!(stringify!($key), " [", $(stringify!($alias))*, "]: ", $desc, "\n")),*
+            $(concat!("- ", stringify!($key), " [", $(stringify!($alias))*, "]: ", $desc, "\n")),*
         )
     };
 }
 
+/// Show a list of all possible query keyword.
 #[poise::command(slash_command)]
 pub async fn query_help(ctx: CmdCtx<'_>) -> Res {
     ctx.say(query_help!(

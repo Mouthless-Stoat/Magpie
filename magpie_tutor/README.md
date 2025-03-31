@@ -18,11 +18,10 @@
     -   [x] \*, select all set
 -   [x] General query
 -   [x] Cache button
--   [ ] Commands
+-   [x] Commands
     -   [x] Help
     -   [x] Modifier display
-    -   [ ] Query help
-    -   [ ] Retry
+    -   [x] Query help
     -   [x] Tunnel status (only on imf)
 -   [ ] Server Default
 -   [x] Human Readable query listing
