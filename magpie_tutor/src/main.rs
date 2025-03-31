@@ -18,7 +18,7 @@ async fn main() {
 
     // poise framework
     let framework = frameworks! {
-        global: help(), show_modifiers(), ping(), show_query();
+        global: help(), show_modifiers(), ping(), query_help();
         guild (1199457939333849118): test();
         guild (994573431880286289): tunnel_status();
         ---

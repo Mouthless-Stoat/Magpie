@@ -10,7 +10,7 @@ macro_rules! query_help {
 }
 
 #[poise::command(slash_command)]
-pub async fn show_query(ctx: CmdCtx<'_>) -> Res {
+pub async fn query_help(ctx: CmdCtx<'_>) -> Res {
     ctx.say(query_help!(
         name [n]: "Filter for name.";
         description [d]: "Filter for description.";
