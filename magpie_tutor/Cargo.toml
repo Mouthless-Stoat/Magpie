@@ -24,6 +24,8 @@ return_self_not_must_use = { level = "allow", priority = 1 }
 too_many_lines = { level = "allow", priority = 1 }
 unreadable_literal = { level = "allow", priority = 1 }
 
+wildcard_imports = { level = "allow", priority = 1 }
+
 [dependencies.magpie_engine]
 path = "../magpie_engine/"
 

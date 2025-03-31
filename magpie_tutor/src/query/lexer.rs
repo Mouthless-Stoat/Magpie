@@ -27,7 +27,7 @@ pub enum Token {
     /// Token for the name keyword.
     /// Alias: `name`, `n`
     Name,
-    /// Token for the desciption keyword. Filter for a card with a desciption
+    /// Token for the desciption keyword.
     /// Alias: `description`, `d`
     Desc,
 

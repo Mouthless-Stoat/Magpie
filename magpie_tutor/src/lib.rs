@@ -21,6 +21,8 @@ pub mod engine;
 pub mod query;
 pub mod search;
 
+pub mod commands;
+
 mod message;
 pub use message::*;
 

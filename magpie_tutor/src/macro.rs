@@ -208,7 +208,7 @@ macro_rules! frameworks {
         poise::Framework::builder()
             .options(poise::FrameworkOptions {
                 commands: vec![$($gb_cmd,)* $($($g_cmd,)*)*],
-                event_handler: |ctx, event, fw, data| Box::pin(handler(ctx, event, fw, data)),
+                event_handler: |ctx, event, fw, data| Box::pin($crate::handler(ctx, event, fw, data)),
                 ..Default::default()
             })
             .setup(|ctx, _ready, framework| {
