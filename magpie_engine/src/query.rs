@@ -482,8 +482,8 @@ where
                 None => write!(f, "is traitless"),
                 Some(t) => write!(f, "is {t}"),
             },
-            Filters::Or(a, b) => write!(f, "{a} or {b}"),
-            Filters::Not(a) => write!(f, "not {a}"),
+            Filters::Or(a, b) => write!(f, "({a} or {b})"),
+            Filters::Not(a) => write!(f, "not ({a})"),
             Filters::Extra(e) => write!(f, "{e}"),
             Filters::McGuffin(..) | Filters::Cake(..) => unreachable!(),
         }
