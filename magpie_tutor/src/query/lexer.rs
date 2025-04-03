@@ -102,6 +102,11 @@ pub fn tokenize_query(query: &str) -> Result<Vec<Token>, String> {
             // Single word matches. To reduce complexicity these are also responsible for number
             // matching so we try to convert to number first before sending out a string token
             (_, Some(sing), ..) => match sing {
+                str if matches!(tokens.last().unwrap_or(&Token::Equal), Token::Colon) => str
+                    .parse()
+                    .map(Token::Num)
+                    .unwrap_or(Token::Str(str.to_owned())),
+
                 "name" | "n" => Token::Name,
                 "description" | "d" => Token::Desc,
                 "rarity" | "r" => Token::Rarity,
