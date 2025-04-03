@@ -366,13 +366,10 @@ where
         if self.energy != 0 {
             out.push(format!("{} energy", self.energy));
         }
-        if self.blood != 0 {
-            out.push(format!("{} blood", self.blood));
-        }
 
         if self.mox.contains(Mox::O) {
             out.push(format!(
-                "{}orange",
+                "{} orange",
                 if let Some(ref m) = self.mox_count {
                     m.o
                 } else {
@@ -382,7 +379,7 @@ where
         }
         if self.mox.contains(Mox::G) {
             out.push(format!(
-                "{}green",
+                "{} green",
                 if let Some(ref m) = self.mox_count {
                     m.g
                 } else {
@@ -392,7 +389,7 @@ where
         }
         if self.mox.contains(Mox::B) {
             out.push(format!(
-                "{}blue",
+                "{} blue",
                 if let Some(ref m) = self.mox_count {
                     m.b
                 } else {
@@ -402,7 +399,7 @@ where
         }
         if self.mox.contains(Mox::Y) {
             out.push(format!(
-                "{}gray",
+                "{} gray",
                 if let Some(ref m) = self.mox_count {
                     m.y
                 } else {
@@ -421,7 +418,10 @@ where
             ));
         }
 
-        out.push(format!("{}", self.extra));
+        let str = format!("{}", self.extra);
+        if !str.is_empty() {
+            out.push(str);
+        }
 
         write!(f, "{}", out.join(" and "))
     }
