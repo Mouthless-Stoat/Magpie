@@ -9,6 +9,7 @@ use std::vec;
 use magpie_engine::prelude::*;
 use poise::serenity_prelude::{colours::roles, CreateEmbed};
 
+use crate::emojis::cost;
 use crate::{Filters, Set};
 
 pub mod lexer;
@@ -61,15 +62,21 @@ pub fn query_message(sets: Vec<&Set>, query: &str) -> CreateEmbed {
         .description(if query.cards.len() >= 200 || output.len() >= 2000 {
             String::from("Too many results...Try narrowing your search")
         } else {
-            format!(
-                "Cards that {}\n{}",
-                query
-                    .filters
-                    .into_iter()
-                    .map(|f| f.to_string())
-                    .collect::<Vec<String>>()
-                    .join(" and "),
-                output
-            )
+            let string_filters = query
+                .filters
+                .into_iter()
+                .map(|f| f.to_string())
+                .collect::<Vec<String>>()
+                .join(" and ");
+
+            let string_filters = string_filters
+                .replace(" blood", cost::BLOOD)
+                .replace(" bone", cost::BONE)
+                .replace(" energy", cost::ENERGY)
+                .replace(" orange", cost::ORANGE)
+                .replace(" green", cost::GREEN)
+                .replace(" blue", cost::BLUE);
+
+            format!("Cards that {string_filters}\n{output}")
         })
 }
