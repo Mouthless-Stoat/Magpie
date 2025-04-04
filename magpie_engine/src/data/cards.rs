@@ -280,7 +280,7 @@ impl Display for SpAtk {
 
 bitflags! {
     /// Bits flag for Moxes.
-    #[derive(Default, Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
     pub struct Mox: u16 {
         /// Orange or Ruby Mox.
         const O = 1;
@@ -330,7 +330,7 @@ pub struct MoxCount {
 }
 
 /// Contain all the cost info.
-#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Costs<E> {
     /// Other case where the card are not free.
     /// Blood cost for the card.
@@ -409,7 +409,7 @@ where
         }
         if self.mox.contains(Mox::K) {
             out.push(format!(
-                "{}black",
+                "{} black",
                 if let Some(ref m) = self.mox_count {
                     m.k
                 } else {
