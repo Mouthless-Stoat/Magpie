@@ -4,7 +4,7 @@ use crate::{Res, FIGHT_REGEX};
 
 pub async fn message_handler(msg: &Message, ctx: &Context) -> Res {
     if msg.content.starts_with("what") {
-        let content = desc_faq(msg.content.to_lowercase().as_str());
+        let content = faq(msg.content.to_lowercase().as_str());
         if !content.is_empty() {
             msg.reply(ctx, content).await?;
         }
@@ -29,7 +29,7 @@ You can look at [this faq](https://discord.com/channels/994573431880286289/11686
     Ok(())
 }
 
-fn desc_faq(what: &str) -> &'static str {
+fn faq(what: &str) -> &'static str {
     match what {
         "what is link" | "what is <:cost_link:1240999261831958599>" | "what are links" => "
 Links are an alternate cost type in Descryption. This cost type predominantly appears on Artistry cards. 
