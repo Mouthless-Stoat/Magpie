@@ -26,7 +26,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> SetResult<(), ()> {
     }
 
     sigils_description.insert(
-        String::from("UNDEFINEDED SIGILS"),
+        String::from("UNDEFINED SIGIL"),
         "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
     );
 
@@ -78,7 +78,7 @@ pub fn fetch_imf_set(url: &str, code: SetCode) -> SetResult<(), ()> {
                     if sigils_description.contains_key(&s) {
                         s
                     } else {
-                        String::from("UNDEFINEDED SIGILS")
+                        String::from("UNDEFINED SIGIL")
                     }
                 })
                 .collect(),

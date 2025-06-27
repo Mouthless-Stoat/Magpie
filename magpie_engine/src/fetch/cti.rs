@@ -31,7 +31,7 @@ pub fn fetch_cti_set(code: SetCode) -> SetResult<(), ()> {
     }
 
     sigils_description.insert(
-        String::from("UNDEFINDED SIGILS"),
+        String::from("UNDEFINED SIGIL"),
         "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
     );
 

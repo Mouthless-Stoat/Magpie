@@ -28,7 +28,7 @@ pub fn fetch_desc_set(code: SetCode) -> SetResult<(), DescCosts> {
         }
 
         h.insert(
-            String::from("UNDEFINDED SIGILS"),
+            String::from("UNDEFINED SIGIL"),
             "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
         );
 
@@ -139,7 +139,7 @@ pub fn fetch_desc_set(code: SetCode) -> SetResult<(), DescCosts> {
                         if sigils_description.contains_key(&s) {
                             s
                         } else {
-                            String::from("UNDEFINEDED SIGILS")
+                            String::from("UNDEFINED SIGIL")
                         }
                     })
                     .collect()
