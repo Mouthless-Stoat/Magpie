@@ -26,6 +26,12 @@ pub fn fetch_desc_set(code: SetCode) -> SetResult<(), DescCosts> {
         for s in sigils {
             h.insert(s.name, s.text);
         }
+
+        h.insert(
+            String::from("UNDEFINDED SIGILS"),
+            "THIS SIGIL IS NOT DEFINED BY THE SET".to_owned(),
+        );
+
         h
     };
 
