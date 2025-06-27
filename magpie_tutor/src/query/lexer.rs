@@ -130,7 +130,7 @@ pub fn tokenize_query(query: &str) -> Result<Vec<Token>, String> {
             // Other symbol token, if they are not multi simple we try to separate them into simple
             // token and parse them.
             //
-            // TODO: FIX THIS, BECAUSE IT GET CAUGHT ON "(<=" AND PRODUCE 3 TOKENS INSTEAD OF 2.
+            // TODO: FIX THIS, BECAUSE IT GET CAUGHT ON `(<=` AND PRODUCE 3 TOKENS INSTEAD OF 2.
             (.., Some(sym)) => {
                 tokens.extend(match_sym(sym)?);
                 continue;
