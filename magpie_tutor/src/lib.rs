@@ -171,23 +171,33 @@ lazy_static! {
     pub static ref CACHE: Mutex<HashMap<u64, CacheData>> = load_cache();
 
     /// List of response that ping will return
-    pub static ref PING_RESPONSE: [&'static str;16] = [
-        "o jan Mike. sina toki la sina lape suli lon luka tenpo sike. mi mute li lukin e sin nasin. o pini lape",
-        "ijo ijo",
-        "tenpo kama",
-        "mi mute li lukin toki e ni. tomo tawa sina li tenpo suli awen.",
-        "suwi olin mi a. ilo jan li lon aaa",
-        "mi unpa mama sini lon tenpo ni",
-        "mi sona semi",
-        "sin ijo lon tenpo",
-        "mi olin toki pona",
-        "mi olin musi Insison",
-        "sina sona ala sona toki pona",
-        "o sewi sewi anpa anpa poka poka teje teje A B A B",
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://www.youtube.com/watch?v=b7vWLz9iGsk",
-        "I don't know who you are. I don't know what you want. If you are looking for ransom I can tell you I don't have money, but what I do have are a very particular set of skills. Skills I have acquired over a very long career. Skills that make me a nightmare for people like you. If you let my daughter go now that'll be the end of it. I will not look for you, I will not pursue you, but if you don't, I will look for you, I will find you and I will kill you.",
+    pub static ref PING_RESPONSE: [&'static str;26] = [
         "Crazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\nCrazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\nCrazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\nCrazy?\nI was crazy once\nThey lock me in a room\nA rubber room\nA rubber room with rats\nThe rats make me crazy\n",
+        "I don't know who you are. I don't know what you want. If you are looking for ransom I can tell you I don't have money, but what I do have are a very particular set of skills. Skills I have acquired over a very long career. Skills that make me a nightmare for people like you. If you let my daughter go now that'll be the end of it. I will not look for you, I will not pursue you, but if you don't, I will look for you, I will find you and I will kill you.",
+        "I'm doing your mom at this very instance",
+        "Mike, If you are reading this, you've been in a coma for 5 years, we're trying a new technique, please, wake up.",
+        "New update in sometime",
+        "Something Something",
+        "Soon",
+        "Stoat is not dense >:(",
+        "We been trying to reach you about your car extended warranty",
+        "What did I miss",
+        "babe wake up the bot is online",
+        "https://www.youtube.com/watch?v=b7vWLz9iGsk",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "ijo ijo",
+        "mi mute li lukin toki e ni. tomo tawa sina li tenpo suli awen.",
+        "mi olin musi Insison",
+        "mi olin toki pona",
+        "mi sona semi",
+        "mi unpa mama sini lon tenpo ni",
+        "o jan Mike. sina toki la sina lape suli lon luka tenpo sike. mi mute li lukin e sin nasin. o pini lape",
+        "o sewi sewi anpa anpa poka poka teje teje A B A B",
+        "sin ijo lon tenpo",
+        "sina sona ala sona toki pona",
+        "suwi olin mi a. ilo jan li lon aaa",
+        "tenpo kama",
+        "Pong!"
     ];
 }
 
