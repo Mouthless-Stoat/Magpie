@@ -15,7 +15,6 @@ use crate::{
     CacheData, Card, Color, Death, FuzzyRes, MessageAdapter, MessageCreateExt, Res, CACHE,
     CACHE_REGEX, DEBUG_CARD, SEARCH_REGEX, SETS,
 };
-
 mod portrait;
 #[allow(clippy::wildcard_imports)]
 use portrait::*;
@@ -179,14 +178,14 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             {
                 best
             } else {
-                embeds.push({
-                    CreateEmbed::new()
-                        .color(roles::RED)
-                        .title(format!("Card \"{search_term}\" not found"))
-                        .description(
-                            "No card found with sufficient similarity with the search term in the selected set(s).",
-                        )
-                });
+                if !modifier.contains(Modifier::ALL_SET) {
+                    embeds.push({
+                        CreateEmbed::new()
+                            .color(roles::RED)
+                            .title(format!("Card \"{search_term}\" not found in selected set ({})", set.name))
+                            .description( "No card found with sufficient similarity with the search term in the selected set.")
+                    });
+                }
                 continue;
             };
 
@@ -246,6 +245,12 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                 .title("Too many embeds")
                 .description("Too many embeds, Discord only allow up to 10 embeds per message. Try separting your search across multiple message")
                 .color(roles::RED)
+        );
+    } else if embeds.is_empty() {
+        embeds.push(
+            CreateEmbed::new()
+                .title("No card found in all selected set(s)")
+                .description("No card found with sufficient similarity with the search term in the selected set(s).")
         );
     }
 
