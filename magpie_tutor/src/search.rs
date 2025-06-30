@@ -104,8 +104,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             (set, &modifier[..i])
         };
 
-        let modifier = {
+        let (modifier, unused_mod) = {
             let mut t = Modifier::empty();
+            let mut r = String::new();
+
             for m in modifier.chars() {
                 t |= match m {
                     'q' => Modifier::QUERY,
@@ -116,7 +118,10 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     'r' => Modifier::RAW,
                     '`' => continue 'outer, // exit this search term
 
-                    _ => continue,
+                    c => {
+                        r.push(c);
+                        continue;
+                    }
                 }
             }
 
@@ -125,7 +130,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                 t |= Modifier::QUERY;
             }
 
-            t
+            (t, r)
         };
 
         let mut sets = vec![];
@@ -202,6 +207,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                 card,
                 g_sets.get(card.set.code()).unwrap(),
                 modifier.contains(Modifier::COMPACT),
+                unused_mod.clone(),
             );
             let hash = hash_card_url(card);
             let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");

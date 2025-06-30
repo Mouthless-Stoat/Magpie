@@ -22,7 +22,13 @@ type EmbedRes = (CreateEmbed, String);
 ///
 /// Sigils and other traits use the embed field because they are optional and not every card have
 /// them.
-pub fn gen_embed(rank: f32, card: &Card, set: &Set, compact: bool) -> CreateEmbed {
+pub fn gen_embed(
+    rank: f32,
+    card: &Card,
+    set: &Set,
+    compact: bool,
+    unused_mod: String,
+) -> CreateEmbed {
     // The specific gen embed function should return the embed and the footer that they would like
     // to add.
 
@@ -37,10 +43,24 @@ pub fn gen_embed(rank: f32, card: &Card, set: &Set, compact: bool) -> CreateEmbe
             String::new(),
         ),
     };
-    embed.footer(CreateEmbedFooter::new(format!(
-        "{footer}\nMatch {:.2}% with the search term",
-        rank * 100.
-    )))
+
+    let footer = {
+        let t = format!("{footer}\nMatch {:.2}% with the search term", rank * 100.);
+        if unused_mod.is_empty() {
+            t
+        } else {
+            format!(
+                "{t}\nThe following modifier was ignored: {}",
+                unused_mod
+                    .chars()
+                    .map(String::from)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        }
+    };
+
+    embed.footer(CreateEmbedFooter::new(footer))
 }
 
 #[allow(clippy::inline_always)] // this is just a helper function so inline it
