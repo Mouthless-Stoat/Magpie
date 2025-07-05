@@ -99,7 +99,7 @@ lazy_static! {
     /// The regex use to match cache attachment link.
     pub static ref CACHE_REGEX: Regex = Regex::new(r"(\d+)\/(\d+)\/(\d+)\.png\?ex=(\w+)") .unwrap_or_die("Cannot compiling cache regex fails");
     /// The regex use to match message and tokenize them
-    pub static ref QUERY_REGEX: Regex = Regex::new(r#"(?:"(.+)")|([-\w]+)|([^\s\w"-]*)"#) .unwrap_or_die("Cannot compile query regex");
+    pub static ref QUERY_REGEX: Regex = Regex::new(r#"(?:"([\w\s]+)")|([-\w]+)|([^\s\w"-]*)"#) .unwrap_or_die("Cannot compile query regex");
     /// The regex use to match cost value in query
     pub static ref COST_REGEX: Regex = Regex::new(r"(-?\d+)?([a-zA-Z])").unwrap_or_die("Cannot compile query regex");
     /// The regex use to detech if a messagae asking for a game
