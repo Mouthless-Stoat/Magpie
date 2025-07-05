@@ -18,15 +18,18 @@
     -   [x] \*, select all set
 -   [x] General query
 -   [x] Cache button
--   [x] Commands
+-   [ ] Commands
     -   [x] Help
     -   [x] Modifier display
     -   [x] Query help
     -   [x] Tunnel status (only on imf)
+    -   [ ] Draft
+    -   [ ] Guess the card
+    -   [ ] Retry command
 -   [ ] Server Default
 -   [x] Human Readable query listing
 -   [ ] Query Documentation
 -   [ ] Rewrite of query backend
--   [ ] Query improvement
     -   [ ] Better color matching
     -   [ ] Allow resolving of expression
+-   [ ] Scryfall look up in imf
