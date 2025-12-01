@@ -176,13 +176,17 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                     rank: 4.2,
                     data: &*DEBUG_CARD,
                 }
-            } else if let Some(best) =
-                fuzzy_best(search_term, set.cards.iter().collect(), 0.5, |c: &Card| {
+            } else if let Some(best) = {
+                info!("Fuzzy searching for: {}", search_term);
+                let res = fuzzy_best(search_term, set.cards.iter().collect(), 0.5, |c: &Card| {
                     c.name.as_str()
-                })
-            {
+                });
+                res
+            } {
+                done!("Fuzzy search succeed found: {}", best.data.name);
                 best
             } else {
+                done!("{}", "No results from fuzzy search!".red());
                 if !modifier.contains(Modifier::ALL_SET) {
                     embeds.push({
                         CreateEmbed::new()
@@ -195,6 +199,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
             };
 
             if modifier.contains(Modifier::DEBUG) {
+                info!("Generating debug embed for: {}", search_term);
                 embeds.push(CreateEmbed::new().color(roles::BLUE).description(format!(
                     "Hash: {:?}\n```\n{card:#?}\n```",
                     hash_card_url(card)
@@ -202,6 +207,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                 continue;
             }
 
+            info!("Generating embed for: {}", search_term);
             let mut embed = gen_embed(
                 rank,
                 card,
@@ -209,6 +215,8 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
                 modifier.contains(Modifier::COMPACT),
                 unused_mod.clone(),
             );
+            info!("Embed for {} generated", search_term);
+            info!("Grabbing portrait for {}", search_term);
             let hash = hash_card_url(card);
             let mut cache_guard = CACHE.lock().unwrap_or_die("Cannot lock cache");
 
@@ -244,6 +252,8 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         }
     }
 
+    done!("Finished all search sending message...");
+
     if embeds.len() > 10 {
         embeds.clear();
         embeds.push(
@@ -260,6 +270,7 @@ pub fn process_search(content: &str, guild_id: GuildId) -> MessageAdapter {
         );
     }
 
+    done!("Finished everything :D");
     MessageAdapter::new()
         .content(format!("Search completed in {:.1?}", start.elapsed()))
         .embeds(embeds)
